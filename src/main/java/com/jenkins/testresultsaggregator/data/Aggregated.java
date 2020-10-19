@@ -142,9 +142,9 @@ public class Aggregated extends BaseResult {
 		return false;
 	}
 	
-	public String getPercentageSummary(boolean withColor) {
+	public String getPercentageSummary(boolean withColor, int percentageFontSize) {
 		StringBuilder percentage = new StringBuilder("<br>");
-		int fontSize = 12;
+		int fontSize = percentageFontSize;
 		String status = null;
 		if (runningJobs > 0) {
 			status = JobStatus.RUNNING.toString();
