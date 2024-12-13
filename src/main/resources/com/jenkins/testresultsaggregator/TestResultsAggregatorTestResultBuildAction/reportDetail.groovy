@@ -9,11 +9,10 @@ import com.jenkins.testresultsaggregator.data.JobStatus
 import com.jenkins.testresultsaggregator.helper.Colors
 
 script(src: "${app.rootUrl}/plugin/test-results-aggregator/js/toggle_table.js")
-script(src: "${app.rootUrl}/plugin/test-results-aggregator/js/toggle_mthd_summary.js")
 
 if (my.result.abortedJobs > 0) {
 	h2(align: "left", style:"color:${Colors.htmlABORTED()}" ,"Aborted Jobs")
-	a(href: "javascript:toggleTable('aborted-tbl')") {
+	a(href: "", class: "toggle-table", "data-toggle-target": "aborted-tbl") {
 		text("hide/expand the table")
 	}
 	table(id:"aborted-tbl", border:"1px", class:"pane sortable") {
@@ -75,7 +74,7 @@ if (my.result.abortedJobs > 0) {
 
 if (my.result.failedJobs > 0) {
 	h2(align: "left", style:"color:${Colors.htmlFAILED()}" ,"Failed Jobs")
-	a(href: "javascript:toggleTable('fail-tbl')") {
+	a(href: "", class: "toggle-table", "data-toggle-target": "fail-tbl") {
 		text("hide/expand the table")
 	}
 	table(id:"fail-tbl", border:"1px", class:"pane sortable") {
@@ -137,7 +136,7 @@ if (my.result.failedJobs > 0) {
 
 if (my.result.keepFailJobs > 0) {
 	h2(align: "left", style:"color:${Colors.htmlFAILED()}" ,"Still Failling Jobs")
-	a(href: "javascript:toggleTable('failk-tbl')") {
+	a(href: "", class: "toggle-table", "data-toggle-target": "failk-tbl") {
 		text("hide/expand the table")
 	}
 	table(id:"failk-tbl", border:"1px", class:"pane sortable") {
@@ -199,7 +198,7 @@ if (my.result.keepFailJobs > 0) {
 
 if (my.result.unstableJobs > 0) {
 	h2(align: "left", style:"color:${Colors.htmlUNSTABLE()}" ,"Unstable Jobs")
-	a(href: "javascript:toggleTable('unstable-tbl')") {
+	a(href: "", class: "toggle-table", "data-toggle-target": "unstable-tbl") {
 		text("hide/expand the table")
 	}
 	table(id:"unstable-tbl", border:"1px", class:"pane sortable") {
@@ -261,7 +260,7 @@ if (my.result.unstableJobs > 0) {
 
 if (my.result.keepUnstableJobs > 0) {
 	h2(align: "left", style:"color:${Colors.htmlUNSTABLE()}" ,"Still Unstable Jobs")
-	a(href: "javascript:toggleTable('unstablek-tbl')") {
+	a(href: "", class: "toggle-table", "data-toggle-target": "unstablek-tbl") {
 		text("hide/expand the table")
 	}
 	table(id:"unstablek-tbl", border:"1px", class:"pane sortable") {
@@ -323,7 +322,7 @@ if (my.result.keepUnstableJobs > 0) {
 
 if (my.result.fixedJobs > 0) {
 	h2(align: "left", style:"color:${Colors.htmlSUCCESS()}" , "Fixed Jobs")
-	a(href: "javascript:toggleTable('fixed-tbl')") {
+	a(href: "", class: "toggle-table", "data-toggle-target": "fixed-tbl") {
 		text("hide/expand the table")
 	}
 	table(id:"fixed-tbl", border:"1px", class:"pane sortable") {
@@ -385,7 +384,7 @@ if (my.result.fixedJobs > 0) {
 
 if (my.result.successJobs > 0) {
 	h2(align: "left", style:"color:${Colors.htmlSUCCESS()}" , "Success Jobs")
-	a(href: "javascript:toggleTable('Success-tbl')") {
+	a(href: "", class: "toggle-table", "data-toggle-target": "Success-tbl") {
 		text("hide/expand the table")
 	}
 	table(id:"Success-tbl", border:"1px", class:"pane sortable") {
@@ -447,7 +446,7 @@ if (my.result.successJobs > 0) {
 
 if (my.result.runningJobs > 0) {
 	h2(align: "left", style:"color:${Colors.htmlRUNNING()}" ,"Running Jobs")
-	a(href: "javascript:toggleTable('running-tbl')") {
+	a(href: "", class: "toggle-table", "data-toggle-target": "running-tbl") {
 		text("hide/expand the table")
 	}
 	table(id:"running-tbl", border:"1px", class:"pane sortable") {
