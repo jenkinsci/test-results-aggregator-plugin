@@ -1,5 +1,6 @@
 package com.jenkins.testresultsaggregator.reports;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.time.Instant;
 
@@ -24,7 +25,7 @@ public class InfluxdbReporter {
 		this.logger = logger;
 	}
 	
-	public void post(Aggregated aggregated, String url, String token, String bucket, String org) throws Exception {
+	public void post(Aggregated aggregated, String url, String token, String bucket, String org) throws IOException, InterruptedException {
 		if (!Strings.isNullOrEmpty(url) && !Strings.isNullOrEmpty(token) && !Strings.isNullOrEmpty(bucket) && !Strings.isNullOrEmpty(org)) {
 			logger.println(LocalMessages.POST.toString() + " " + LocalMessages.INFLUXDB.toString());
 			createClient(url, token);
@@ -58,7 +59,7 @@ public class InfluxdbReporter {
 		}
 	}
 	
-	private void createClient(String url, String token) throws Exception {
+	private void createClient(String url, String token) throws IOException, InterruptedException {
 		INFLXUDB_CLIENT = InfluxDBClientFactory.create(url, token.toCharArray());
 		Boolean ping = INFLXUDB_CLIENT.ping();
 		int retries = 1;
@@ -69,7 +70,7 @@ public class InfluxdbReporter {
 			retries++;
 		}
 		if (ping == null || !ping) {
-			throw new Exception("Status from " + url + " is ");
+			throw new IOException("Status from " + url + " is ");
 		}
 	}
 	

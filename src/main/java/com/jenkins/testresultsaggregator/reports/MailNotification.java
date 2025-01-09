@@ -1,14 +1,13 @@
 package com.jenkins.testresultsaggregator.reports;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +64,7 @@ public class MailNotification {
 	}
 	
 	public void send(String mailTo, String mailToCC, String mailToBCc, String mailFrom, String subject, String body, Map<String, ImageData> images, String preBodyText, String afterBodyText)
-			throws Exception {
+			throws MessagingException, IOException, InterruptedException, URISyntaxException {
 		logger.println(LocalMessages.GENERATE.toString() + " " + LocalMessages.EMAIL_REPORT.toString());
 		MimeMessageBuilder mimeMessageBuilder = new MimeMessageBuilder();
 		MimeMessage message = null;
@@ -74,78 +73,62 @@ public class MailNotification {
 		} else if (Strings.isNullOrEmpty(mailTo) && Strings.isNullOrEmpty(mailToCC) && Strings.isNullOrEmpty(mailToBCc)) {
 			logger.println(LocalMessages.VALIDATION_MAIL_RECEIPIENTS_EMPTY.toString());
 		} else {
-			try {// Add Recipients
-				String[] to = mailTo.split(",");
-				for (String recipient : to) {
-					mimeMessageBuilder.addRecipients(recipient, RecipientType.TO);
-				}
-				String[] toc = mailToCC.split(",");
-				for (String recipient : toc) {
-					mimeMessageBuilder.addRecipients(recipient, RecipientType.CC);
-				}
-				String[] tobc = mailToBCc.split(",");
-				for (String recipient : tobc) {
-					mimeMessageBuilder.addRecipients(recipient, RecipientType.BCC);
-				}
-				// Add Body before
-				StringBuffer messageBody = new StringBuffer();
-				if (!Strings.isNullOrEmpty(preBodyText)) {
-					preBodyText = resolveVariables(preBodyText);
-					messageBody.append(preBodyText);
-					messageBody.append("<br></br>");
-				}
-				// Add Body
-				messageBody.append(body);
-				// Add Body before and after text
-				if (!Strings.isNullOrEmpty(afterBodyText)) {
-					afterBodyText = resolveVariables(afterBodyText);
-					messageBody.append("<br></br>");
-					messageBody.append(afterBodyText);
-				}
-				// Set Body
-				mimeMessageBuilder.setBody(messageBody.toString());
-				// Set Subject
-				mimeMessageBuilder.setSubject(subject);
-				// Set type
-				mimeMessageBuilder.setMimeType("text/html");
-				
-				// Build Message
-				message = mimeMessageBuilder.buildMimeMessage();
-				message.setFrom(new InternetAddress(mailFrom));
-				useImages(messageBody, images, message);
-				// Save Message
-				message.saveChanges();
-				// Send Message
-				sendMessage(message);
-				logger.println(LocalMessages.SEND_MAIL_TO.toString());
-				if (!Strings.isNullOrEmpty(mailTo)) {
-					logger.println("" + mailTo);
-				}
-				if (!Strings.isNullOrEmpty(mailToCC)) {
-					logger.println("" + mailToCC);
-				}
-				if (!Strings.isNullOrEmpty(mailToBCc)) {
-					logger.println("" + mailToBCc);
-				}
-			} catch (Exception ex) {
-				// Send Mail with no images
-				logger.printf(LocalMessages.ERROR_OCCURRED.toString() + ": " + ex.getMessage());
-				logger.println(LocalMessages.SEND_MAIL_TO.toString());
-				if (message != null) {
-					message = mimeMessageBuilder.buildMimeMessage();
-					message.setFrom(new InternetAddress(mailFrom));
-					// Save Message
-					message.saveChanges();
-					sendMessage(message);
-				}
-				ex.printStackTrace();
-				logger.println("");
+			String[] to = mailTo.split(",");
+			for (String recipient : to) {
+				mimeMessageBuilder.addRecipients(recipient, RecipientType.TO);
+			}
+			String[] toc = mailToCC.split(",");
+			for (String recipient : toc) {
+				mimeMessageBuilder.addRecipients(recipient, RecipientType.CC);
+			}
+			String[] tobc = mailToBCc.split(",");
+			for (String recipient : tobc) {
+				mimeMessageBuilder.addRecipients(recipient, RecipientType.BCC);
+			}
+			// Add Body before
+			StringBuffer messageBody = new StringBuffer();
+			if (!Strings.isNullOrEmpty(preBodyText)) {
+				preBodyText = resolveVariables(preBodyText);
+				messageBody.append(preBodyText);
+				messageBody.append("<br></br>");
+			}
+			// Add Body
+			messageBody.append(body);
+			// Add Body before and after text
+			if (!Strings.isNullOrEmpty(afterBodyText)) {
+				afterBodyText = resolveVariables(afterBodyText);
+				messageBody.append("<br></br>");
+				messageBody.append(afterBodyText);
+			}
+			// Set Body
+			mimeMessageBuilder.setBody(messageBody.toString());
+			// Set Subject
+			mimeMessageBuilder.setSubject(subject);
+			// Set type
+			mimeMessageBuilder.setMimeType("text/html");
+			
+			// Build Message
+			message = mimeMessageBuilder.buildMimeMessage();
+			message.setFrom(new InternetAddress(mailFrom));
+			useImages(messageBody, images, message);
+			// Save Message
+			message.saveChanges();
+			// Send Message
+			sendMessage(message);
+			logger.println(LocalMessages.SEND_MAIL_TO.toString());
+			if (!Strings.isNullOrEmpty(mailTo)) {
+				logger.println("" + mailTo);
+			}
+			if (!Strings.isNullOrEmpty(mailToCC)) {
+				logger.println("" + mailToCC);
+			}
+			if (!Strings.isNullOrEmpty(mailToBCc)) {
+				logger.println("" + mailToBCc);
 			}
 		}
 	}
 	
-	public void sendIgnoredData(String mailTo, String mailFrom, String subject, String body, String preBodyText, String afterBodyText)
-			throws Exception {
+	public void sendIgnoredData(String mailTo, String mailFrom, String subject, String body, String preBodyText, String afterBodyText) throws UnsupportedEncodingException, MessagingException {
 		logger.println(LocalMessages.GENERATE.toString() + " " + LocalMessages.EMAIL_REPORT.toString() + " " + LocalMessages.IGNORE.toString());
 		MimeMessageBuilder mimeMessageBuilder = new MimeMessageBuilder();
 		MimeMessage message = null;
@@ -208,14 +191,13 @@ public class MailNotification {
 		}
 	}
 	
-	private void sendMessage(MimeMessage message) throws Exception {
+	private void sendMessage(MimeMessage message) throws MessagingException {
 		try {
 			Transport.send(message);
-		} catch (Exception ex) {
+		} catch (MessagingException ex) {
 			if (ex.getMessage().startsWith("Couldn't connect to host, port: localhost, 25; timeout 60000")) {
 				ex.printStackTrace();
 				logger.println(LocalMessages.ERROR_OCCURRED.toString() + ": Not found configuration for SMTP mail server into Jenkins global configuration");
-				
 			} else {
 				throw ex;
 			}
@@ -246,13 +228,13 @@ public class MailNotification {
 		imagePart.setDisposition(MimeBodyPart.INLINE);
 		// Get File
 		FilePath localFile = Helper.createFile(workspace, imageData.getSourcePath());
-		File copied = new File(rootDirectory + "/" + imageData.getFileName());
+		File copied = new File(rootDirectory + File.separator + imageData.getFileName());
 		try (
-				InputStream in = new BufferedInputStream(new FileInputStream(localFile.getRemote()));
+				InputStream inp = localFile.read();
 				OutputStream out = new BufferedOutputStream(new FileOutputStream(copied))) {
 			byte[] buffer = new byte[1024];
 			int lengthRead;
-			while ((lengthRead = in.read(buffer)) > 0) {
+			while ((lengthRead = inp.read(buffer)) > 0) {
 				out.write(buffer, 0, lengthRead);
 				out.flush();
 			}

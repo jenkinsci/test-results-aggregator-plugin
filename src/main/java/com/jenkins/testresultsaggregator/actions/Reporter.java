@@ -2,6 +2,7 @@ package com.jenkins.testresultsaggregator.actions;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -53,7 +54,7 @@ public class Reporter {
 		this.ignoreAbortedJobs = ignoreAbortedJobs;
 	}
 	
-	public void publishResuts(Aggregated aggregated, Properties properties, List<LocalMessages> columns, File rootDirectory) throws Exception {
+	public void publishResuts(Aggregated aggregated, Properties properties, List<LocalMessages> columns, File rootDirectory) throws IOException, InterruptedException {
 		foundAtLeastOneGroupName = false;
 		for (Data data : aggregated.getData()) {
 			if (!Strings.isNullOrEmpty(data.getGroupName())) {
@@ -89,24 +90,28 @@ public class Reporter {
 		MailNotification mailNotification = new MailNotification(logger, aggregatedCopy.getData(), workspace, rootDirectory);
 		// Generate and Send Mail report
 		String subjectText = generateMailSubject(properties.getProperty(AggregatorProperties.SUBJECT_PREFIX.name()), aggregatedCopy);
-		mailNotification.send(
-				properties.getProperty(AggregatorProperties.RECIPIENTS_LIST.name()),
-				properties.getProperty(AggregatorProperties.RECIPIENTS_LIST_CC.name()),
-				properties.getProperty(AggregatorProperties.RECIPIENTS_LIST_BCC.name()),
-				mailNotificationFrom,
-				subjectText,
-				bodyText,
-				images,
-				properties.getProperty(AggregatorProperties.TEXT_BEFORE_MAIL_BODY.name()),
-				properties.getProperty(AggregatorProperties.TEXT_AFTER_MAIL_BODY.name()));
-		//
-		mailNotification.sendIgnoredData(
-				properties.getProperty(AggregatorProperties.RECIPIENTS_LIST_IGNORED.name()),
-				mailNotificationFrom,
-				"Test Results Aggregator Ignored Jobs",
-				bodyTextIgnored,
-				properties.getProperty(AggregatorProperties.TEXT_BEFORE_MAIL_BODY.name()),
-				properties.getProperty(AggregatorProperties.TEXT_AFTER_MAIL_BODY.name()));
+		try {
+			mailNotification.send(
+					properties.getProperty(AggregatorProperties.RECIPIENTS_LIST.name()),
+					properties.getProperty(AggregatorProperties.RECIPIENTS_LIST_CC.name()),
+					properties.getProperty(AggregatorProperties.RECIPIENTS_LIST_BCC.name()),
+					mailNotificationFrom,
+					subjectText,
+					bodyText,
+					images,
+					properties.getProperty(AggregatorProperties.TEXT_BEFORE_MAIL_BODY.name()),
+					properties.getProperty(AggregatorProperties.TEXT_AFTER_MAIL_BODY.name()));
+			//
+			mailNotification.sendIgnoredData(
+					properties.getProperty(AggregatorProperties.RECIPIENTS_LIST_IGNORED.name()),
+					mailNotificationFrom,
+					"Test Results Aggregator Ignored Jobs",
+					bodyTextIgnored,
+					properties.getProperty(AggregatorProperties.TEXT_BEFORE_MAIL_BODY.name()),
+					properties.getProperty(AggregatorProperties.TEXT_AFTER_MAIL_BODY.name()));
+		} catch (Exception ex) {
+			throw new IOException(ex);
+		}
 		new InfluxdbReporter(logger).post(aggregatedCopy,
 				properties.getProperty(AggregatorProperties.INFLUXDB_URL.name()),
 				properties.getProperty(AggregatorProperties.INFLUXDB_TOKEN.name()),
@@ -132,7 +137,7 @@ public class Reporter {
 		}
 	}
 	
-	private String generateMailBody(InputStream inputStream) throws Exception {
+	private String generateMailBody(InputStream inputStream) throws IOException {
 		BufferedReader buf = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
 		String line = buf.readLine();
 		StringBuilder sb = new StringBuilder();

@@ -3,17 +3,31 @@ package com.jenkins.testresultsaggregator.actions;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
-import com.google.common.base.Stopwatch;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.base.Strings;
 import com.jenkins.testresultsaggregator.data.BuildWithDetailsAggregator;
 import com.jenkins.testresultsaggregator.data.Data;
@@ -45,11 +59,22 @@ public class Collector {
 	JenkinsServer jenkins;
 	Map<String, com.offbytwo.jenkins.model.Job> jobs;
 	JenkinsHttpConnection client;
+	String username;
+	String passwordPlainText;
 	
-	public Collector(String jenkinsUrl, String username, Secret password, PrintStream printStream, List<Data> data) throws URISyntaxException, IOException {
+	public Collector(String jenkinsUrl, String username, Secret password, PrintStream printStream, List<Data> data) throws IOException {
 		this.logger = printStream;
-		this.jenkins = new JenkinsServer(new URI(jenkinsUrl), username, password.getPlainText());
-		this.jobs = jenkins.getJobs();
+		this.username = username;
+		if (password != null) {
+			this.passwordPlainText = password.getPlainText();
+		}
+		try {
+			this.jenkins = new JenkinsServer(new URI(jenkinsUrl), username, passwordPlainText);
+			this.jobs = jenkins.getJobs();
+		} catch (Exception ex) {
+			logger.println("ERROR " + ex.getMessage());
+			throw new IOException(ex);
+		}
 		this.client = jenkins.getQueue().getClient();
 		StringBuilder text = new StringBuilder();
 		text.append("Total Jenkins jobs found " + jobs.size());
@@ -124,13 +149,15 @@ public class Collector {
 	private JobWithDetailsAggregator getDetailsMode(Job job, int mode) throws Exception {
 		JobWithDetailsAggregator response = null;
 		int retries = 0;
+		String url = job.getUrl() + DEPTH;
+		// job.getModelJob().details().getUrl() + DEPTH
 		StringBuilder errorFound = new StringBuilder();
 		while (retries < 4 && response == null) {
 			try {
 				if (mode == 1) {
-					response = job.getModelJob().getClient().get(job.getModelJob().details().getUrl() + DEPTH, JobWithDetailsAggregator.class);
+					response = job.getModelJob().getClient().get(url, JobWithDetailsAggregator.class);
 				} else {
-					response = client.get(job.getUrl(), JobWithDetailsAggregator.class);
+					response = getData(url, username, passwordPlainText, JobWithDetailsAggregator.class);
 				}
 				errorFound = new StringBuilder();
 			} catch (Exception ex) {
@@ -153,13 +180,14 @@ public class Collector {
 	private BuildWithDetailsAggregator getLastBuildDetailsMode(Job job, int mode) throws Exception {
 		BuildWithDetailsAggregator response = null;
 		int retries = 0;
+		String url = job.getModelJob().details().getLastBuild().details().getUrl() + DEPTH;
 		StringBuilder errorFound = new StringBuilder();
 		while (retries < 4 && response == null) {
 			try {
 				if (mode == 1) {
-					response = job.getModelJob().getClient().get(job.getModelJob().details().getLastBuild().details().getUrl() + DEPTH, BuildWithDetailsAggregator.class);
+					response = job.getModelJob().getClient().get(url, BuildWithDetailsAggregator.class);
 				} else {
-					response = client.get(job.getModelJob().details().getLastBuild().details().getUrl() + DEPTH, BuildWithDetailsAggregator.class);
+					response = getData(url, username, passwordPlainText, BuildWithDetailsAggregator.class);
 				}
 				errorFound = new StringBuilder();
 			} catch (Exception ex) {
@@ -191,10 +219,11 @@ public class Collector {
 						build = job.getModelJob().details().getBuildByNumber(number);
 					}
 					if (build != null) {
+						String url = build.details().getUrl() + DEPTH;
 						if (mode == 1) {
-							response = job.getModelJob().getClient().get(build.details().getUrl() + DEPTH, BuildWithDetailsAggregator.class);
+							response = job.getModelJob().getClient().get(url, BuildWithDetailsAggregator.class);
 						} else {
-							response = client.get(build.details().getUrl() + DEPTH, BuildWithDetailsAggregator.class);
+							response = getData(url, username, passwordPlainText, BuildWithDetailsAggregator.class);
 						}
 					}
 					errorFound = new StringBuilder();
@@ -258,7 +287,6 @@ public class Collector {
 		
 		@Override
 		public void run() {
-			Stopwatch stopwatch = Stopwatch.createStarted();
 			StringBuilder text = new StringBuilder();
 			if (job.getModelJob() != null) {
 				try {
@@ -394,8 +422,6 @@ public class Collector {
 				text.append("Job '" + job.getJobName() + "' " + JobStatus.NOT_FOUND.name() + " url " + job.getUrl());
 				job.setResults(new Results(JobStatus.NOT_FOUND.name(), job.getUrl()));
 			}
-			stopwatch.stop();
-			text.append(" (" + stopwatch.elapsed(TimeUnit.SECONDS) + "s)");
 			logger.println(text.toString());
 		}
 	}
@@ -431,4 +457,34 @@ public class Collector {
 		return 0;
 	}
 	
+	private <T> T getData(String urlString, String username, String password, Class<T> clazz) throws Exception {
+		String response = getHttp(urlString, username, password);
+		ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+				.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+				.configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true)
+				.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false)
+				.configure(DeserializationFeature.READ_ENUMS_USING_TO_STRING, true)
+				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+		return mapper.readValue(response, clazz);
+		
+	}
+	
+	private String getHttp(String urlString, String username, String password) throws Exception {
+		URI uri = URI.create(urlString);
+		HttpHost host = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
+		CredentialsProvider credsProvider = new BasicCredentialsProvider();
+		credsProvider.setCredentials(new AuthScope(uri.getHost(), uri.getPort()), new UsernamePasswordCredentials(username, password));
+		// Create AuthCache instance
+		AuthCache authCache = new BasicAuthCache();
+		// Generate BASIC scheme object and add it to the local auth cache
+		BasicScheme basicAuth = new BasicScheme();
+		authCache.put(host, basicAuth);
+		CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(credsProvider).build();
+		HttpGet httpGet = new HttpGet(uri);
+		// Add AuthCache to the execution context
+		HttpClientContext localContext = HttpClientContext.create();
+		localContext.setAuthCache(authCache);
+		HttpResponse response = httpClient.execute(host, httpGet, localContext);
+		return EntityUtils.toString(response.getEntity());
+	}
 }

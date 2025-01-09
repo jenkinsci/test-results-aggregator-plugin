@@ -12,7 +12,6 @@ import java.util.Set;
 import org.apache.commons.jelly.JellyContext;
 import org.apache.commons.jelly.JellyException;
 import org.apache.commons.jelly.XMLOutput;
-import org.xml.sax.SAXException;
 
 import com.jenkins.testresultsaggregator.data.Aggregated;
 import com.jenkins.testresultsaggregator.data.ImagesMap;
@@ -41,7 +40,7 @@ public class HTMLReporter {
 		this.workspace = workspace;
 	}
 	
-	public FilePath createOverview(Aggregated aggregated, List<LocalMessages> columns, String theme, boolean showGroups) throws JellyException, SAXException, IOException, InterruptedException {
+	public FilePath createOverview(Aggregated aggregated, List<LocalMessages> columns, String theme, boolean showGroups) throws IOException, InterruptedException {
 		logger.print(LocalMessages.GENERATE.toString() + " " + LocalMessages.HTML_REPORT.toString());
 		FilePath directory = Helper.createFolder(workspace, FOLDER, true);
 		FilePath file = Helper.createFile(directory, OVERVIEW_HTML_FILE);
@@ -61,11 +60,20 @@ public class HTMLReporter {
 		context.setVariable("lineSeperatorcolor", Colors.htmlLINESEPERATOR());
 		XMLOutput xmlOutput = XMLOutput.createXMLOutput(file.write());
 		URL template = HTMLReporter.class.getResource("/" + OVERVIEW_JELLY_FILE);
-		JellyContext jellyContext = context.runScript(template, xmlOutput);
-		xmlOutput.endDocument();
+		JellyContext jellyContext = null;
+		try {
+			jellyContext = context.runScript(template, xmlOutput);
+			xmlOutput.endDocument();
+		} catch (JellyException e1) {
+			e1.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		xmlOutput.flush();
 		xmlOutput.close();
-		jellyContext.clear();
+		if (jellyContext != null) {
+			jellyContext.clear();
+		}
 		// Copy Images
 		copyImages(directory);
 		logger.println(LocalMessages.FINISHED.toString() + " " + LocalMessages.HTML_REPORT.toString());
@@ -85,7 +93,7 @@ public class HTMLReporter {
 		Helper.createFile(directory, destinationFile).copyFrom(inputUrl);
 	}
 	
-	public FilePath createIgnoredData(Set<Job> ignoredDataJobs, String theme) throws IOException, InterruptedException, JellyException, SAXException {
+	public FilePath createIgnoredData(Set<Job> ignoredDataJobs, String theme) throws IOException, InterruptedException {
 		logger.print(LocalMessages.GENERATE.toString() + " " + LocalMessages.HTML_REPORT.toString() + " " + LocalMessages.IGNORE.toString());
 		FilePath directory = Helper.createFolder(workspace, FOLDER, false);
 		FilePath file = Helper.createFile(directory, IGNORED_DATA_HTML_FILE);
@@ -104,11 +112,18 @@ public class HTMLReporter {
 		context.setVariable("lineSeperatorcolor", Colors.htmlLINESEPERATOR());
 		XMLOutput xmlOutput = XMLOutput.createXMLOutput(file.write());
 		URL template = HTMLReporter.class.getResource("/" + IGNORED_DATA_JELLY_FILE);
-		JellyContext jellyContext = context.runScript(template, xmlOutput);
-		xmlOutput.endDocument();
+		JellyContext jellyContext = null;
+		try {
+			jellyContext = context.runScript(template, xmlOutput);
+			xmlOutput.endDocument();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		xmlOutput.flush();
 		xmlOutput.close();
-		jellyContext.clear();
+		if (jellyContext != null) {
+			jellyContext.clear();
+		}
 		logger.println(LocalMessages.FINISHED.toString() + " " + LocalMessages.HTML_REPORT.toString());
 		return file;
 	}

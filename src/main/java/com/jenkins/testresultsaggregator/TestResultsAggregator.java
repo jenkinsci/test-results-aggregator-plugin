@@ -1,5 +1,6 @@
 package com.jenkins.testresultsaggregator;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
@@ -50,29 +51,29 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 	
 	private static final String displayName = "Aggregate Test Results";
 	
-	public String subject;
-	public String recipientsList;
-	public String recipientsListCC;
-	public String recipientsListBCC;
-	public String recipientsListIgnored;
-	public String beforebody;
-	public String afterbody;
-	public String theme;
-	public String sortresults;
-	public String outOfDateResults;
-	public Boolean compareWithPreviousRun;
-	public Boolean ignoreNotFoundJobs;
-	public Boolean ignoreDisabledJobs;
-	public Boolean ignoreAbortedJobs;
-	public Boolean ignoreRunningJobs;
-	public String columns;
-	public List<Data> data;
-	public List<DataPipeline> jobs;
+	private String subject;
+	private String recipientsList;
+	private String recipientsListCC;
+	private String recipientsListBCC;
+	private String recipientsListIgnored;
+	private String beforebody;
+	private String afterbody;
+	private String theme;
+	private String sortresults;
+	private String outOfDateResults;
+	private Boolean compareWithPreviousRun;
+	private Boolean ignoreNotFoundJobs;
+	private Boolean ignoreDisabledJobs;
+	private Boolean ignoreAbortedJobs;
+	private Boolean ignoreRunningJobs;
+	private String columns;
+	private List<Data> data;
+	private List<DataPipeline> jobs;
 	
-	public String influxdbUrl;
-	public String influxdbToken;
-	public String influxdbBucket;
-	public String influxdbOrg;
+	private String influxdbUrl;
+	private String influxdbToken;
+	private String influxdbBucket;
+	private String influxdbOrg;
 	
 	private Properties properties;
 	public static final String DISPLAY_NAME = "Job Results Aggregated";
@@ -161,81 +162,71 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 	
 	/* In use from Pipeline Syntax */
 	@Override
-	public void perform(Run<?, ?> run, FilePath workspace, EnvVars env, Launcher launcher, TaskListener listener) {
+	public void perform(Run<?, ?> run, FilePath workspace, EnvVars env, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
 		PrintStream logger = listener.getLogger();
 		Descriptor desc = getDescriptor();
-		try {
-			logger.println(LocalMessages.START_AGGREGATE.toString());
-			//
-			initProperties();
-			// Resolve Variables
-			resolveVariables(properties, null, run.getEnvironment(listener));
-			// Resolve Columns
-			List<LocalMessages> localizedColumns = calculateColumns(getColumns());
-			//
-			String jenkinsUrl = resolveJenkinsUrl(env, logger);
-			// Validate Input Data
-			Aggregated aggregatedSavedData = null;
-			List<Data> validatedData = validateInputData(getDataFromDataPipeline(), jenkinsUrl);
-			validatedData = checkUserInputForInjection(validatedData);
-			if (compareWithPrevious()) {
-				aggregatedSavedData = getPreviousData(run.getPreviousSuccessfulBuild(), validatedData);
-			}
-			// Collect Data
-			Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
-			collector.collectResults(validatedData, compareWithPrevious(), ignoreRunningJobs());
-			collector.closeJenkinsConnection();
-			// Analyze Results
-			Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious());
-			// Reporter for HTML and mail
-			Reporter reporter = new Reporter(logger, workspace, run.getRootDir(), desc.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs);
-			reporter.publishResuts(aggregated, properties, localizedColumns, run.getRootDir());
-			// Add Build Action
-			run.addAction(new TestResultsAggregatorTestResultBuildAction(aggregated));
-		} catch (Exception e) {
-			logger.printf(LocalMessages.ERROR_OCCURRED.toString() + " : %s ", e);
-			e.printStackTrace(logger);
+		logger.println(LocalMessages.START_AGGREGATE.toString());
+		//
+		initProperties();
+		// Resolve Variables
+		resolveVariables(properties, null, run.getEnvironment(listener));
+		// Resolve Columns
+		List<LocalMessages> localizedColumns = calculateColumns(getColumns());
+		//
+		String jenkinsUrl = resolveJenkinsUrl(env, logger);
+		// Validate Input Data
+		Aggregated aggregatedSavedData = null;
+		List<Data> validatedData = validateInputData(getDataFromDataPipeline(), jenkinsUrl);
+		validatedData = checkUserInputForInjection(validatedData);
+		if (compareWithPrevious()) {
+			aggregatedSavedData = getPreviousData(run.getPreviousSuccessfulBuild(), validatedData);
 		}
+		// Collect Data
+		Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
+		collector.collectResults(validatedData, compareWithPrevious(), ignoreRunningJobs());
+		collector.closeJenkinsConnection();
+		// Analyze Results
+		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious());
+		// Reporter for HTML and mail
+		Reporter reporter = new Reporter(logger, workspace, run.getRootDir(), desc.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs);
+		reporter.publishResuts(aggregated, properties, localizedColumns, run.getRootDir());
+		// Add Build Action
+		run.addAction(new TestResultsAggregatorTestResultBuildAction(aggregated));
 		logger.println(LocalMessages.FINISHED_AGGREGATE.toString());
 	}
 	
 	/* In use from Free Style Project */
 	@Override
-	public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener) {
+	public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
 		PrintStream logger = listener.getLogger();
 		Descriptor desc = getDescriptor();
-		try {
-			logger.println(LocalMessages.START_AGGREGATE.toString());
-			//
-			initProperties();
-			// Resolve Variables
-			resolveVariables(properties, build.getBuildVariableResolver(), build.getEnvironment(listener));
-			// Resolve Columns
-			List<LocalMessages> localizedColumns = calculateColumns(getColumns());
-			//
-			String jenkinsUrl = resolveJenkinsUrl(build.getEnvironment(listener), logger);
-			// Validate Input Data
-			List<Data> validatedData = validateInputData(getData(), jenkinsUrl);
-			validatedData = checkUserInputForInjection(validatedData);
-			Aggregated aggregatedSavedData = null;
-			if (compareWithPrevious()) {
-				aggregatedSavedData = getPreviousData(build, validatedData);
-			}
-			// Collect Data
-			Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
-			collector.collectResults(validatedData, compareWithPrevious(), ignoreRunningJobs());
-			collector.closeJenkinsConnection();
-			// Analyze Results
-			Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious());
-			// Reporter for HTML and mail
-			Reporter reporter = new Reporter(logger, build.getProject().getSomeWorkspace(), build.getRootDir(), desc.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs);
-			reporter.publishResuts(aggregated, properties, localizedColumns, build.getRootDir());
-			// Add Build Action
-			build.addAction(new TestResultsAggregatorTestResultBuildAction(aggregated));
-		} catch (Exception e) {
-			logger.printf(LocalMessages.ERROR_OCCURRED.toString() + " : %s ", e);
-			e.printStackTrace(logger);
+		logger.println(LocalMessages.START_AGGREGATE.toString());
+		//
+		initProperties();
+		// Resolve Variables
+		resolveVariables(properties, build.getBuildVariableResolver(), build.getEnvironment(listener));
+		// Resolve Columns
+		List<LocalMessages> localizedColumns = calculateColumns(getColumns());
+		//
+		String jenkinsUrl = resolveJenkinsUrl(build.getEnvironment(listener), logger);
+		// Validate Input Data
+		List<Data> validatedData = validateInputData(getData(), jenkinsUrl);
+		validatedData = checkUserInputForInjection(validatedData);
+		Aggregated aggregatedSavedData = null;
+		if (compareWithPrevious()) {
+			aggregatedSavedData = getPreviousData(build, validatedData);
 		}
+		// Collect Data
+		Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
+		collector.collectResults(validatedData, compareWithPrevious(), ignoreRunningJobs());
+		collector.closeJenkinsConnection();
+		// Analyze Results
+		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious());
+		// Reporter for HTML and mail
+		Reporter reporter = new Reporter(logger, build.getProject().getSomeWorkspace(), build.getRootDir(), desc.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs);
+		reporter.publishResuts(aggregated, properties, localizedColumns, build.getRootDir());
+		// Add Build Action
+		build.addAction(new TestResultsAggregatorTestResultBuildAction(aggregated));
 		logger.println(LocalMessages.FINISHED_AGGREGATE.toString());
 		return true;
 	}
@@ -558,7 +549,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		this.jobs = pipelineJobs;
 	}
 	
-	public List<Data> getDataFromDataPipeline() throws Exception {
+	public List<Data> getDataFromDataPipeline() throws IOException {
 		List<Data> data = new ArrayList<>();
 		if (jobs != null && !jobs.isEmpty()) {
 			List<String> groups = jobs.stream().map(DataPipeline::getGroupName).distinct().collect(Collectors.toList());
@@ -583,7 +574,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 			}
 			return data;
 		}
-		throw new Exception("No data");
+		throw new IOException("No data");
 	}
 	
 	public String getInfluxdbUrl() {

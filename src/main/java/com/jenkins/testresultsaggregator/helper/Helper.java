@@ -229,9 +229,9 @@ public class Helper {
 		FilePath fp;
 		if (filePath.isRemote()) {
 			VirtualChannel channel = filePath.getChannel();
-			fp = new FilePath(channel, filePath.getRemote() + "/" + filename);
+			fp = new FilePath(channel, filePath.getRemote() + File.separator + filename);
 		} else {
-			fp = new FilePath(new File(filePath.getRemote() + "/" + filename));
+			fp = new FilePath(new File(filePath.getRemote() + File.separator + filename));
 		}
 		return fp;
 	}
