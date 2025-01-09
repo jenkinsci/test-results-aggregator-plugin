@@ -1,5 +1,6 @@
 package com.jenkins.testresultsaggregator.data;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +39,7 @@ public class ImagesMap {
 	public static Map<String, ImageData> getImages() {
 		String path = "";
 		if (!HTMLReporter.FOLDER.isEmpty()) {
-			path = HTMLReporter.FOLDER + "/";
+			path = HTMLReporter.FOLDER + File.separator;
 		}
 		images.put(Images.image0.name(), new ImageData(path + "health-00to19.png", "/icons/health-00to19.png", "health-00to19.png", "cid:image0", "Project health is 20% or less", 0));
 		images.put(Images.image1.name(), new ImageData(path + "health-20to39.png", "/icons/health-20to39.png", "health-20to39.png", "cid:image1", "Project health is over 20% and up to 40%", 20));
