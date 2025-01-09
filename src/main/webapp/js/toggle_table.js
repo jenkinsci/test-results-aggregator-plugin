@@ -1,8 +1,15 @@
 function toggleTable(id) {
-    var element = document.getElementById(id);
-    if (document.getElementById(id).style.display == "none") {
-        document.getElementById(id).style.display = "";
-    } else if (document.getElementById(id).style.display == "") {
-        document.getElementById(id).style.display = "none";
-    }
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === "none" ? "" : "none";
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".toggle-table").forEach((toggle) => {
+        toggle.addEventListener("click", (event) => {
+            event.preventDefault();
+            const { toggleTarget } = event.target.dataset;
+
+            toggleTable(toggleTarget);
+        });
+    });
+});
