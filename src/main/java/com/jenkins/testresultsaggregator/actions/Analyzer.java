@@ -26,7 +26,7 @@ public class Analyzer {
 		this.logger = logger;
 	}
 	
-	public Aggregated analyze(Aggregated aggregatedSavedData, List<Data> listData, Properties properties, boolean compareWithPrevious) throws Exception {
+	public Aggregated analyze(Aggregated aggregatedSavedData, List<Data> listData, Properties properties, boolean compareWithPrevious) {
 		// Resolve
 		String outOfDateResults = properties.getProperty(TestResultsAggregator.AggregatorProperties.OUT_OF_DATE_RESULTS_ARG.name());
 		// Check if Groups/Names are used
