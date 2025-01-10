@@ -358,7 +358,11 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 			// https://www.jenkins.io/doc/developer/security/form-validation/
 			Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 			try {
-				JenkinsServer jenkins = new JenkinsServer(new URI(jenkinsUrl), username, password.getPlainText());
+				String plainTextPassword = null;
+				if (password != null && !Strings.isNullOrEmpty(password.getPlainText())) {
+					plainTextPassword = password.getPlainText();
+				}
+				JenkinsServer jenkins = new JenkinsServer(new URI(jenkinsUrl), username, plainTextPassword);
 				Map<String, com.offbytwo.jenkins.model.Job> jobsfound = jenkins.getJobs();
 				String message = LocalMessages.SUCCESS.toString() + " (items found " + jobsfound.size() + ")";
 				jenkins.close();
