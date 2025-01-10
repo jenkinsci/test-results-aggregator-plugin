@@ -601,6 +601,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		return influxdbUrl;
 	}
 	
+	@DataBoundSetter
 	public void setInfluxdbUrl(String influxdbUrl) {
 		this.influxdbUrl = influxdbUrl;
 	}
@@ -609,6 +610,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		return influxdbToken;
 	}
 	
+	@DataBoundSetter
 	public void setInfluxdbToken(String influxdbToken) {
 		this.influxdbToken = influxdbToken;
 	}
@@ -617,6 +619,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		return influxdbBucket;
 	}
 	
+	@DataBoundSetter
 	public void setInfluxdbBucket(String influxdbBucket) {
 		this.influxdbBucket = influxdbBucket;
 	}
@@ -625,6 +628,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		return influxdbOrg;
 	}
 	
+	@DataBoundSetter
 	public void setInfluxdbOrg(String influxdbOrg) {
 		this.influxdbOrg = influxdbOrg;
 	}
