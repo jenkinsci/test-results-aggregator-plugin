@@ -270,16 +270,36 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 			return username;
 		}
 		
+		@DataBoundSetter
+		public void setUsername(String username) {
+			this.username = username;
+		}
+		
 		public Secret getPassword() {
 			return password;
+		}
+		
+		@DataBoundSetter
+		public void setPassword(String password) {
+			this.password = Secret.fromString(password);
 		}
 		
 		public String getJenkinsUrl() {
 			return jenkinsUrl;
 		}
 		
+		@DataBoundSetter
+		public void setJenkinsUrl(String jenkinsUrl) {
+			this.jenkinsUrl = jenkinsUrl;
+		}
+		
 		public String getMailNotificationFrom() {
 			return mailNotificationFrom;
+		}
+		
+		@DataBoundSetter
+		public void setMailNotificationFrom(String mailNotificationFrom) {
+			this.mailNotificationFrom = mailNotificationFrom;
 		}
 		
 		public String defaultMailNotificationFrom() {
