@@ -9,7 +9,7 @@
 	</parent>
 	<artifactId>test-results-aggregator</artifactId>
 	<packaging>hpi</packaging>
-	<version>2.3-SNAPSHOT</version>
+	<version>2.3</version>
 	<name>Test Results Aggregator Plugin</name>
 	<description>Aggregate Test and Job Results in a single HTML/email report.</description>
 	<url>https://github.com/jenkinsci/test-results-aggregator-plugin</url>
@@ -42,7 +42,7 @@
 		<connection>scm:git:https://github.com/jenkinsci/test-results-aggregator-plugin.git</connection>
 		<developerConnection>scm:git:https://github.com/jenkinsci/test-results-aggregator-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/test-results-aggregator-plugin</url>
-	  <tag>test-results-aggregator-2.1</tag>
+	  <tag>test-results-aggregator-2.3</tag>
   </scm>
 	<developers>
 		<developer>
