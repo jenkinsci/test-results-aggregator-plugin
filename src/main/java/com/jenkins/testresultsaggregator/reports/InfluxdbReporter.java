@@ -27,14 +27,14 @@ public class InfluxdbReporter {
 	
 	public void post(Aggregated aggregated, String url, String token, String bucket, String org) throws IOException, InterruptedException {
 		if (!Strings.isNullOrEmpty(url) && !Strings.isNullOrEmpty(token) && !Strings.isNullOrEmpty(bucket) && !Strings.isNullOrEmpty(org)) {
-			logger.println(LocalMessages.POST.toString() + " " + LocalMessages.INFLUXDB.toString());
+			logger.print(LocalMessages.POST.toString() + " " + LocalMessages.INFLUXDB.toString());
 			createClient(url, token);
 			for (Data data : aggregated.getData()) {
 				for (Job job : data.getJobs()) {
 					Instant timeStamp = Instant.now();
 					if (!job.getLast().isBuilding()) {
 						// Job has already been completed , is not building post the endTime
-						timeStamp = Instant.ofEpochMilli(job.getLast().getDuration());
+						timeStamp = Instant.ofEpochMilli(job.getLast().getTimestamp());
 					}
 					Point pointJenkinsJob = Point.measurement("Aggregator")
 							.time(timeStamp, WritePrecision.S)
