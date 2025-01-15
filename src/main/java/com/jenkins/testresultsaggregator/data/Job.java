@@ -121,16 +121,7 @@ public class Job extends AbstractDescribableImpl<Job> implements Serializable {
 	
 	public String getJobNameFromFriendlyName(boolean withLinktoResults) {
 		if (withLinktoResults) {
-			String reportUrl = null;
-			if (last == null) {
-				reportUrl = null;
-				// Get job and execution id
-			} else if (Strings.isNullOrEmpty(last.getUrl())) {
-				reportUrl = null;
-			} else {
-				reportUrl = last.getResults().getUrl();
-			}
-			// iF this is still null Use Job url
+			String reportUrl = job.getUrl();
 			if (Strings.isNullOrEmpty(reportUrl)) {
 				reportUrl = url;
 			}
