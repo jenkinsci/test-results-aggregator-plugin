@@ -183,7 +183,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		}
 		// Collect Data
 		Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
-		collector.collectResults(validatedData, compareWithPrevious(), ignoreRunningJobs());
+		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs());
 		collector.closeJenkinsConnection();
 		// Analyze Results
 		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious());
@@ -218,7 +218,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		}
 		// Collect Data
 		Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
-		collector.collectResults(validatedData, compareWithPrevious(), ignoreRunningJobs());
+		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs());
 		collector.closeJenkinsConnection();
 		// Analyze Results
 		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious());
@@ -242,13 +242,13 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		properties.put(AggregatorProperties.SORT_JOBS_BY.name(), getSortresults() != null ? getSortresults() : "Job Name");
 		properties.put(AggregatorProperties.SUBJECT_PREFIX.name(), getSubject());
 		properties.put(AggregatorProperties.RECIPIENTS_LIST.name(), getRecipientsList() != null ? getRecipientsList() : "");
-		properties.put(AggregatorProperties.RECIPIENTS_LIST_BCC.name(), getRecipientsListBcc() != null ? getRecipientsListBcc() : "");
-		properties.put(AggregatorProperties.RECIPIENTS_LIST_CC.name(), getRecipientsListCc() != null ? getRecipientsListCc() : "");
+		properties.put(AggregatorProperties.RECIPIENTS_LIST_BCC.name(), getRecipientsListBCC() != null ? getRecipientsListBCC() : "");
+		properties.put(AggregatorProperties.RECIPIENTS_LIST_CC.name(), getRecipientsListCC() != null ? getRecipientsListCC() : "");
 		properties.put(AggregatorProperties.RECIPIENTS_LIST_IGNORED.name(), getRecipientsListIgnored() != null ? getRecipientsListIgnored() : "");
-		properties.put(AggregatorProperties.IGNORE_NOTFOUND_JOBS.name(), ignoreNotFoundJobs());
-		properties.put(AggregatorProperties.IGNORE_DISABLED_JOBS.name(), ignoreDisabledJobs());
-		properties.put(AggregatorProperties.IGNORE_ABORTED_JOBS.name(), ignoreAbortedJobs());
-		properties.put(AggregatorProperties.IGNORE_RUNNING_JOBS.name(), ignoreRunningJobs());
+		properties.put(AggregatorProperties.IGNORE_NOTFOUND_JOBS.name(), getIgnoreNotFoundJobs());
+		properties.put(AggregatorProperties.IGNORE_DISABLED_JOBS.name(), getIgnoreDisabledJobs());
+		properties.put(AggregatorProperties.IGNORE_ABORTED_JOBS.name(), getIgnoreAbortedJobs());
+		properties.put(AggregatorProperties.IGNORE_RUNNING_JOBS.name(), getIgnoreRunningJobs());
 		properties.put(AggregatorProperties.INFLUXDB_URL.name(), getInfluxdbUrl() != null ? getInfluxdbUrl() : "");
 		properties.put(AggregatorProperties.INFLUXDB_TOKEN.name(), getInfluxdbToken() != null ? getInfluxdbToken() : "");
 		properties.put(AggregatorProperties.INFLUXDB_BUCKET.name(), getInfluxdbBucket() != null ? getInfluxdbBucket() : "");
@@ -470,11 +470,11 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		return recipientsList;
 	}
 	
-	public String getRecipientsListCc() {
+	public String getRecipientsListCC() {
 		return recipientsListCC;
 	}
 	
-	public String getRecipientsListBcc() {
+	public String getRecipientsListBCC() {
 		return recipientsListBCC;
 	}
 	
@@ -537,28 +537,28 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		return ignoreDisabledJobs;
 	}
 	
-	public boolean ignoreNotFoundJobs() {
+	public boolean getIgnoreNotFoundJobs() {
 		if (ignoreNotFoundJobs == null) {
 			ignoreNotFoundJobs = false;
 		}
 		return ignoreNotFoundJobs.booleanValue();
 	}
 	
-	public boolean ignoreDisabledJobs() {
+	public boolean getIgnoreDisabledJobs() {
 		if (ignoreDisabledJobs == null) {
 			ignoreDisabledJobs = false;
 		}
 		return ignoreDisabledJobs.booleanValue();
 	}
 	
-	public boolean ignoreAbortedJobs() {
+	public boolean getIgnoreAbortedJobs() {
 		if (ignoreAbortedJobs == null) {
 			ignoreAbortedJobs = false;
 		}
 		return ignoreAbortedJobs.booleanValue();
 	}
 	
-	public boolean ignoreRunningJobs() {
+	public boolean getIgnoreRunningJobs() {
 		if (ignoreRunningJobs == null) {
 			ignoreRunningJobs = false;
 		}
