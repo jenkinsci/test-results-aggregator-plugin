@@ -7,27 +7,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.AuthCache;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.jenkins.testresultsaggregator.data.BuildWithDetailsAggregator;
 import com.jenkins.testresultsaggregator.data.Data;
@@ -47,24 +32,26 @@ import hudson.util.Secret;
 
 public class Collector {
 	
+	private boolean debugMode = false;
 	private int mode = 2;
 	public static final String ROOT_FOLDER = "root";
 	public static final int parrallelThreads = 6;
 	public static final int delayThreads = 6000;
-	public static final int maxThreadTime = 120000;
+	public static final int maxThreadTime = 180000;
 	// Urls
 	public static final String DEPTH = "?depth=1";
+	public static final String API = "/api/json";
 	
 	private PrintStream logger;
 	JenkinsServer jenkins;
 	Map<String, com.offbytwo.jenkins.model.Job> jobs;
 	JenkinsHttpConnection client;
-	String username;
+	// String username;
 	String passwordPlainText;
 	
 	public Collector(String jenkinsUrl, String username, Secret password, PrintStream printStream, List<Data> data) throws IOException {
 		this.logger = printStream;
-		this.username = username;
+		// this.username = username;
 		if (password != null) {
 			this.passwordPlainText = password.getPlainText();
 		}
@@ -149,23 +136,22 @@ public class Collector {
 	private JobWithDetailsAggregator getDetailsMode(Job job, int mode) throws Exception {
 		JobWithDetailsAggregator response = null;
 		int retries = 0;
-		String url = job.getUrl() + DEPTH;
-		// job.getModelJob().details().getUrl() + DEPTH
 		StringBuilder errorFound = new StringBuilder();
 		while (retries < 4 && response == null) {
 			try {
 				if (mode == 1) {
-					response = job.getModelJob().getClient().get(url, JobWithDetailsAggregator.class);
+					response = job.getModelJob().getClient().get(job.getUrl() + DEPTH, JobWithDetailsAggregator.class);
 				} else {
-					response = getData(url, username, passwordPlainText, JobWithDetailsAggregator.class);
+					response = client.get(job.getUrl(), JobWithDetailsAggregator.class);
+					// response = getData(job.getUrl() + API + DEPTH, username, passwordPlainText, JobWithDetailsAggregator.class);
 				}
 				errorFound = new StringBuilder();
 			} catch (Exception ex) {
-				if (ex.getMessage() != null && ex.getMessage().endsWith("is null")) {
+				if (ex.getMessage() != null && ex.getMessage().endsWith("is null") && !ex.getMessage().contains("Unexpected character")) {
 					throw ex;
 				} else {
 					errorFound = new StringBuilder();
-					errorFound.append("Error get details for job '" + job.getJobName() + "' " + ex.getMessage() + " stacktrace " + ExceptionUtils.getStackTrace(ex));
+					errorFound.append("Error get details for job '" + job.getJobName() + "' " + ex.getMessage() + " stacktrace " + ExceptionUtils.getStackTrace(ex) + " mode " + mode);
 				}
 			}
 			retries++;
@@ -180,14 +166,16 @@ public class Collector {
 	private BuildWithDetailsAggregator getLastBuildDetailsMode(Job job, int mode) throws Exception {
 		BuildWithDetailsAggregator response = null;
 		int retries = 0;
-		String url = job.getModelJob().details().getLastBuild().details().getUrl() + DEPTH;
 		StringBuilder errorFound = new StringBuilder();
+		String url = job.getJob().getLastBuild().getUrl() + DEPTH;
 		while (retries < 4 && response == null) {
 			try {
 				if (mode == 1) {
 					response = job.getModelJob().getClient().get(url, BuildWithDetailsAggregator.class);
 				} else {
-					response = getData(url, username, passwordPlainText, BuildWithDetailsAggregator.class);
+					// String url = job.getJob().getLastBuild().getUrl() + API + DEPTH;
+					// response = getData(url, username, passwordPlainText, BuildWithDetailsAggregator.class);
+					response = client.get(url, BuildWithDetailsAggregator.class);
 				}
 				errorFound = new StringBuilder();
 			} catch (Exception ex) {
@@ -195,7 +183,7 @@ public class Collector {
 					throw ex;
 				} else {
 					errorFound = new StringBuilder();
-					errorFound.append("No last build details for job '" + job.getJobName() + "' " + ex.getMessage() + " stacktrace " + ExceptionUtils.getStackTrace(ex));
+					errorFound.append("No last build details for job '" + job.getJobName() + "' " + ex.getMessage() + " stacktrace " + ExceptionUtils.getStackTrace(ex) + " mode " + mode);
 				}
 			}
 			retries++;
@@ -219,11 +207,11 @@ public class Collector {
 						build = job.getModelJob().details().getBuildByNumber(number);
 					}
 					if (build != null) {
-						String url = build.details().getUrl() + DEPTH;
 						if (mode == 1) {
-							response = job.getModelJob().getClient().get(url, BuildWithDetailsAggregator.class);
+							response = job.getModelJob().getClient().get(build.details().getUrl() + DEPTH, BuildWithDetailsAggregator.class);
 						} else {
-							response = getData(url, username, passwordPlainText, BuildWithDetailsAggregator.class);
+							response = client.get(build.details().getUrl() + DEPTH, BuildWithDetailsAggregator.class);
+							// response = getData(build.details().getUrl() + API + DEPTH, username, passwordPlainText, BuildWithDetailsAggregator.class);
 						}
 					}
 					errorFound = new StringBuilder();
@@ -232,7 +220,7 @@ public class Collector {
 						throw ex;
 					} else {
 						errorFound = new StringBuilder();
-						errorFound.append("No build details for job '" + job.getJobName() + "' with number " + number + " " + ex.getMessage() + " stacktrace " + ExceptionUtils.getStackTrace(ex));
+						errorFound.append("No build details for job '" + job.getJobName() + "' with number " + number + " " + ex.getMessage() + " stacktrace " + ExceptionUtils.getStackTrace(ex) + " mode " + mode);
 					}
 				}
 				retries++;
@@ -287,6 +275,7 @@ public class Collector {
 		
 		@Override
 		public void run() {
+			Stopwatch stopwatch = Stopwatch.createStarted();
 			StringBuilder text = new StringBuilder();
 			if (job.getModelJob() != null) {
 				try {
@@ -377,7 +366,7 @@ public class Collector {
 								}
 								if (previousBuildNumber == job.getLast().getNumber()) {
 									// There is no new run since the previous aggregator run
-									BuildWithDetailsAggregator previousResult = getBuildDetails(job, previousBuildNumber);
+									BuildWithDetailsAggregator previousResult = job.getLast();
 									if (previousResult != null && previousBuildNumber > 0) {
 										job.setLast(previousResult);
 										job.getLast().setBuildNumber(previousBuildNumber);
@@ -422,6 +411,10 @@ public class Collector {
 				text.append("Job '" + job.getJobName() + "' " + JobStatus.NOT_FOUND.name() + " url " + job.getUrl());
 				job.setResults(new Results(JobStatus.NOT_FOUND.name(), job.getUrl()));
 			}
+			stopwatch.stop();
+			if (debugMode) {
+				text.append(" (" + stopwatch.elapsed(TimeUnit.SECONDS) + "s)");
+			}
 			logger.println(text.toString());
 		}
 	}
@@ -457,34 +450,38 @@ public class Collector {
 		return 0;
 	}
 	
-	private <T> T getData(String urlString, String username, String password, Class<T> clazz) throws Exception {
+	/*private <T> T getData(String urlString, String username, String password, Class<T> clazz) throws Exception {
 		String response = getHttp(urlString, username, password);
-		ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-				.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-				.configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true)
-				.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false)
-				.configure(DeserializationFeature.READ_ENUMS_USING_TO_STRING, true)
-				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
-		return mapper.readValue(response, clazz);
-		
+		if (response != null) {
+			ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+					.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+					.configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true)
+					.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false)
+					.configure(DeserializationFeature.READ_ENUMS_USING_TO_STRING, true)
+					.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+			return mapper.readValue(response, clazz);
+		}
+		throw new Exception("Null response");
 	}
 	
 	private String getHttp(String urlString, String username, String password) throws Exception {
-		URI uri = URI.create(urlString);
-		HttpHost host = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
-		CredentialsProvider credsProvider = new BasicCredentialsProvider();
-		credsProvider.setCredentials(new AuthScope(uri.getHost(), uri.getPort()), new UsernamePasswordCredentials(username, password));
-		// Create AuthCache instance
-		AuthCache authCache = new BasicAuthCache();
-		// Generate BASIC scheme object and add it to the local auth cache
-		BasicScheme basicAuth = new BasicScheme();
-		authCache.put(host, basicAuth);
-		CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(credsProvider).build();
-		HttpGet httpGet = new HttpGet(uri);
-		// Add AuthCache to the execution context
-		HttpClientContext localContext = HttpClientContext.create();
-		localContext.setAuthCache(authCache);
-		HttpResponse response = httpClient.execute(host, httpGet, localContext);
-		return EntityUtils.toString(response.getEntity());
-	}
+		HttpGet request = new HttpGet(urlString);
+		CredentialsProvider provider = new BasicCredentialsProvider();
+		provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+		try (CloseableHttpClient httpClient = HttpClientBuilder.create()
+				.setDefaultCredentialsProvider(provider)
+				.build();
+				CloseableHttpResponse response = httpClient.execute(request)) {
+			HttpEntity entity = response.getEntity();
+			if (entity != null) {
+				String responseAsString = EntityUtils.toString(entity);
+				if (Strings.isNullOrEmpty(responseAsString) || "{}".equalsIgnoreCase(responseAsString)) {
+					return null;
+				} else {
+					return responseAsString;
+				}
+			}
+		}
+		return null;
+	}*/
 }
