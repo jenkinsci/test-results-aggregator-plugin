@@ -36,21 +36,20 @@ public class InfluxdbReporter {
 						// Job has already been completed , is not building post the endTime
 						timeStamp = Instant.ofEpochMilli(job.getLast().getTimestamp());
 					}
-					Point pointJenkinsJob = Point.measurement("Aggregator")
+					Point pointJenkinsJob = Point.measurement(job.getJobName() + "#" + job.getLast().getNumber())
 							.time(timeStamp, WritePrecision.S)
-							.addTag("identifier", job.getJobName() + "#" + job.getLast().getNumber())
-							.addTag("jobName", job.getJobName())
-							.addTag("name", job.getJobNameFromFriendlyName())
-							.addTag("url", job.getUrl())
-							.addTag("group", data.getGroupName())
-							.addTag("status", job.getResults().getStatus())
-							.addTag("estimatedDuration", "" + job.getJob().getLastBuild().getQueueId())
-							.addTag("status", job.getResults().getStatus())
-							.addTag("testTotal", Integer.toString(job.getLast().getResults().getTotal()))
-							.addTag("testPass", Integer.toString(job.getLast().getResults().getPass()))
-							.addTag("testFail", Integer.toString(job.getLast().getResults().getFail()))
-							.addTag("testSkip", Integer.toString(job.getLast().getResults().getSkip()))
-							.addField("result", job.getResults().getStatus());
+							.addTag("Jenkins Job Name", job.getJobName())
+							.addTag("Build", Integer.toString(job.getLast().getNumber()))
+							.addTag("Name", job.getJobNameFromFriendlyName())
+							.addTag("Url", job.getUrl())
+							.addTag("Group", data.getGroupName())
+							.addTag("Status", job.getResults().getStatus())
+							.addTag("EstimatedDuration", "" + job.getJob().getLastBuild().getQueueId())
+							.addTag("Total Tests", Integer.toString(job.getLast().getResults().getTotal()))
+							.addTag("Pass", Integer.toString(job.getLast().getResults().getPass()))
+							.addTag("Fail", Integer.toString(job.getLast().getResults().getFail()))
+							.addTag("Skip", Integer.toString(job.getLast().getResults().getSkip()))
+							.addField("Result", job.getResults().getStatus());
 					send(pointJenkinsJob, bucket, org);
 					Thread.sleep(200);
 				}
