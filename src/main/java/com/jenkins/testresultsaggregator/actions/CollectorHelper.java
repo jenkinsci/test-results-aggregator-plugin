@@ -56,7 +56,7 @@ public class CollectorHelper {
 		} else {
 			jobResults.setNumberOfChanges(0);
 		}
-		jobResults.setChangesUrl(buildDetails.getUrl() + "/changes");
+		jobResults.setChangesUrl(buildDetails.getUrl() + "changes");
 		if (actionList != null) {
 			for (Object temp : actionList) {
 				HashMap<Object, Object> actions = (HashMap<Object, Object>) temp;
