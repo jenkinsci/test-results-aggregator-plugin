@@ -12,6 +12,7 @@ public class Results implements Serializable {
 	private static final long serialVersionUID = 3491974223667L;
 	
 	private String status;
+	private String statusAdvanced;
 	private int number;
 	private String durationReport;
 	private Long duration;
@@ -42,23 +43,23 @@ public class Results implements Serializable {
 	private int totalDif;
 	// Code Coverage
 	private String ccPackagesReport;
-	private Integer ccPackages;
-	private Integer ccPackagesDif;
+	private int ccPackages;
+	private int ccPackagesDif;
 	private String ccFilesReport;
-	private Integer ccFiles;
-	private Integer ccFilesDif;
+	private int ccFiles;
+	private int ccFilesDif;
 	private String ccClassesReport;
-	private Integer ccClasses;
-	private Integer ccClassesDif;
+	private int ccClasses;
+	private int ccClassesDif;
 	private String ccMethodsReport;
-	private Integer ccMethods;
-	private Integer ccMethodsDif;
+	private int ccMethods;
+	private int ccMethodsDif;
 	private String ccLinesReport;
-	private Integer ccLines;
-	private Integer ccLinesDif;
+	private int ccLines;
+	private int ccLinesDif;
 	private String ccConditionsReport;
-	private Integer ccConditions;
-	private Integer ccConditionsDif;
+	private int ccConditions;
+	private int ccConditionsDif;
 	
 	public Results() {
 	}
@@ -66,85 +67,6 @@ public class Results implements Serializable {
 	public Results(String status, String url) {
 		setStatus(status);
 		setUrl(url);
-	}
-	
-	public Results calculate(Job job) {
-		// Calculate Job Status
-		this.status = Helper.calculateStatusJob(job);
-		// Number
-		this.number = job.getLast().getResults().getNumber();
-		// Duration
-		this.duration = job.getLast().getResults().getDuration();
-		// Description
-		this.description = job.getLast().getResults().getDescription();
-		// IsBuilding
-		this.building = job.getLast().getResults().isBuilding();
-		// Url
-		this.url = job.getLast().getResults().getUrl();
-		// Sonar Url
-		this.sonarUrl = job.getLast().getResults().getSonarUrl();
-		// TimeStamp
-		this.timestamp = "0";
-		if (job.getLast().getResults().getTimestamp() != null) {
-			this.timestamp = job.getLast().getResults().getTimestamp().toString();
-		}
-		// Code changes
-		this.numberOfChanges = job.getLast().getResults().getNumberOfChanges();
-		this.changesUrl = job.getLast().getResults().getChangesUrl();
-		// Tests
-		this.pass = job.getLast().getResults().getPass();
-		this.fail = job.getLast().getResults().getFail();
-		this.skip = job.getLast().getResults().getSkip();
-		this.total = job.getLast().getResults().getTotal();
-		// Percentage
-		// this.percentage = Helper.singDoubleSingle((double) (this.pass + this.skip) * 100 / this.total);
-		this.percentageReport = Helper.singDoubleSingle((double) (this.pass + this.skip) * 100 / this.total);
-		if (job.getPrevious() != null) {
-			this.passDif = job.getLast().getResults().getPass() - job.getPrevious().getResults().getPass();
-			this.failDif = job.getLast().getResults().getFail() - job.getPrevious().getResults().getFail();
-			this.skipDif = job.getLast().getResults().getSkip() - job.getPrevious().getResults().getSkip();
-			this.totalDif = job.getLast().getResults().getTotal() - job.getPrevious().getResults().getTotal();
-		} else {
-			this.passDif = 0;
-			this.failDif = 0;
-			this.skipDif = 0;
-			this.totalDif = 0;
-		}
-		// Code Coverage
-		this.ccPackages = job.getLast().getResults().getCcPackages();
-		this.ccFiles = job.getLast().getResults().getCcFiles();
-		this.ccClasses = job.getLast().getResults().getCcClasses();
-		this.ccMethods = job.getLast().getResults().getCcMethods();
-		this.ccLines = job.getLast().getResults().getCcLines();
-		this.ccConditions = job.getLast().getResults().getCcConditions();
-		if (job.getPrevious() != null) {
-			this.ccPackagesDif = job.getLast().getResults().getCcPackages() - job.getPrevious().getResults().getCcPackages();
-			this.ccFilesDif = job.getLast().getResults().getCcFiles() - job.getPrevious().getResults().getCcFiles();
-			this.ccClassesDif = job.getLast().getResults().getCcClasses() - job.getPrevious().getResults().getCcClasses();
-			this.ccMethodsDif = job.getLast().getResults().getCcMethods() - job.getPrevious().getResults().getCcMethods();
-			this.ccLinesDif = job.getLast().getResults().getCcLines() - job.getPrevious().getResults().getCcLines();
-			this.ccConditionsDif = job.getLast().getResults().getCcConditions() - job.getPrevious().getResults().getCcConditions();
-		} else {
-			this.ccPackagesDif = 0;
-			this.ccFilesDif = 0;
-			this.ccClassesDif = 0;
-			this.ccMethodsDif = 0;
-			this.ccLinesDif = 0;
-			this.ccConditionsDif = 0;
-		}
-		return this;
-	}
-	
-	public Results addResults(Results resultsDTO) {
-		this.setTotal(this.getTotal() + resultsDTO.getTotal());
-		this.setTotalDif(this.getTotalDif() + resultsDTO.getTotalDif());
-		this.setFail(this.getFail() + resultsDTO.getFail());
-		this.setFailDif(this.getFailDif() + resultsDTO.getFailDif());
-		this.setPass(this.getPass() + resultsDTO.getPass());
-		this.setPassDif(this.getPassDif() + resultsDTO.getPassDif());
-		this.setSkip(this.getSkip() + resultsDTO.getSkip());
-		this.setSkipDif(this.getSkipDif() + resultsDTO.getSkipDif());
-		return this;
 	}
 	
 	public int getPass() {
@@ -299,6 +221,9 @@ public class Results implements Serializable {
 	}
 	
 	public String getStatusColor() {
+		if (!Strings.isNullOrEmpty(statusAdvanced)) {
+			return fixStatusName(Helper.colorizeResultStatus(statusAdvanced));
+		}
 		return fixStatusName(Helper.colorizeResultStatus(status));
 	}
 	
@@ -704,4 +629,26 @@ public class Results implements Serializable {
 		return GetEnumFromString.get(JobStatus.class, status);
 	}
 	
+	public String getStatusAdvanced() {
+		if (!Strings.isNullOrEmpty(statusAdvanced)) {
+			return statusAdvanced;
+		}
+		return status;
+	}
+	
+	public void setStatusAdvanced(String statusAdvanced) {
+		this.statusAdvanced = statusAdvanced;
+	}
+	
+	public Results addResults(Results resultsDTO) {
+		this.setTotal(this.getTotal() + resultsDTO.getTotal());
+		this.setTotalDif(this.getTotalDif() + resultsDTO.getTotalDif());
+		this.setFail(this.getFail() + resultsDTO.getFail());
+		this.setFailDif(this.getFailDif() + resultsDTO.getFailDif());
+		this.setPass(this.getPass() + resultsDTO.getPass());
+		this.setPassDif(this.getPassDif() + resultsDTO.getPassDif());
+		this.setSkip(this.getSkip() + resultsDTO.getSkip());
+		this.setSkipDif(this.getSkipDif() + resultsDTO.getSkipDif());
+		return this;
+	}
 }
