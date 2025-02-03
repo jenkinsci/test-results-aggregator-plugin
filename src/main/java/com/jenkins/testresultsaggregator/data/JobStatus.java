@@ -26,4 +26,7 @@ public enum JobStatus {
 		return Integer.parseInt(myLocator);
 	}
 	
+	public static JobStatus getFromString(String text) {
+		return JobStatus.valueOf(text);
+	}
 }
