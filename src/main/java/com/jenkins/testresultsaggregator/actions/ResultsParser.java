@@ -46,6 +46,7 @@ public class ResultsParser {
 						Node aggregated = nList.item(0);
 						Node results = null;
 						Node jobs = null;
+						Node config = null;
 						// Resolve Results and Job XML elements
 						for (int i = 0; i < aggregated.getChildNodes().getLength(); i++) {
 							if (aggregated.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE) {
@@ -53,9 +54,13 @@ public class ResultsParser {
 									results = aggregated.getChildNodes().item(i);
 								} else if (XMLReporter.JOBS.equalsIgnoreCase(aggregated.getChildNodes().item(i).getNodeName())) {
 									jobs = aggregated.getChildNodes().item(i);
+								} else if (XMLReporter.CONFIG.equalsIgnoreCase(aggregated.getChildNodes().item(i).getNodeName())) {
+									config = aggregated.getChildNodes().item(i);
 								}
 							}
 						}
+						// Read Config
+						readConfig(finalResults, config);
 						// Read Results
 						readResults(finalResults, results);
 						// Read Jobs
@@ -72,7 +77,7 @@ public class ResultsParser {
 	private int getInteger(Node currentNodeResults) {
 		try {
 			return Integer.parseInt(currentNodeResults.getTextContent());
-		} catch (NumberFormatException ex) {
+		} catch (Exception ex) {
 			
 		}
 		return 0;
@@ -85,6 +90,19 @@ public class ResultsParser {
 			
 		}
 		return "";
+	}
+	
+	private Long getLong(Node currentNodeResults) {
+		try {
+			return Long.parseLong(currentNodeResults.getTextContent());
+		} catch (Exception ex) {
+			
+		}
+		return 0L;
+	}
+	
+	private Boolean getBoolean(Node currentNodeResults) {
+		return Boolean.parseBoolean(currentNodeResults.getTextContent());
 	}
 	
 	private void readResults(Aggregated finalResults, Node results) {
@@ -111,12 +129,57 @@ public class ResultsParser {
 							finalResults.setKeepUnstableJobs(getInteger(currentNodeResults));
 						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_TOTAL)) {
 							finalResults.getResults().setTotal(getInteger(currentNodeResults));
+						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_TOTAL_DIF)) {
+							finalResults.getResults().setTotalDif(getInteger(currentNodeResults));
 						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_SUCCESS)) {
 							finalResults.getResults().setPass(getInteger(currentNodeResults));
+						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_SUCCESS_DIF)) {
+							finalResults.getResults().setPassDif(getInteger(currentNodeResults));
 						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_SKIPPED)) {
 							finalResults.getResults().setSkip(getInteger(currentNodeResults));
+						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_SKIPPED_DIF)) {
+							finalResults.getResults().setSkipDif(getInteger(currentNodeResults));
 						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_FAILED)) {
 							finalResults.getResults().setFail(getInteger(currentNodeResults));
+						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_FAILED_DIF)) {
+							finalResults.getResults().setFailDif(getInteger(currentNodeResults));
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private void readConfig(Aggregated finalResults, Node results) {
+		if (results != null) {
+			for (int i = 0; i < results.getChildNodes().getLength(); i++) {
+				Node currentNodeResults = results.getChildNodes().item(i);
+				if (currentNodeResults.getNodeType() == Node.ELEMENT_NODE) {
+					if (!currentNodeResults.getNodeName().startsWith("#")) {
+						if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.IGNOREDISABLEDJOBS)) {
+							try {
+								finalResults.setIgnoreDisabledJobs(getBoolean(currentNodeResults));
+							} catch (Exception ex) {
+								finalResults.setIgnoreDisabledJobs(null);
+							}
+						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.IGNORENOTFOUNDJOBS)) {
+							try {
+								finalResults.setIgnoreNotFoundJobs(getBoolean(currentNodeResults));
+							} catch (Exception ex) {
+								finalResults.setIgnoreDisabledJobs(null);
+							}
+						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.IGNORERUNNINGJOBS)) {
+							try {
+								finalResults.setIgnoreRunningJobs(getBoolean(currentNodeResults));
+							} catch (Exception ex) {
+								finalResults.setIgnoreDisabledJobs(null);
+							}
+						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.COMPAREWITHPREVIOUSRUN)) {
+							try {
+								finalResults.setCompareWithPreviousRun(getBoolean(currentNodeResults));
+							} catch (Exception ex) {
+								finalResults.setIgnoreDisabledJobs(null);
+							}
 						}
 					}
 				}
@@ -144,6 +207,10 @@ public class ResultsParser {
 								dataJob.setJobName(getString(nodeItem));
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(XMLReporter.STATUS)) {
 								dataJob.getResults().setStatus(getString(nodeItem));
+							} else if (nodeItem.getNodeName().equalsIgnoreCase(XMLReporter.STATUS_ADV)) {
+								dataJob.getResults().setStatusAdvanced(getString(nodeItem));
+							} else if (nodeItem.getNodeName().equalsIgnoreCase(XMLReporter.DURATION)) {
+								dataJob.getResults().setDuration(getLong(nodeItem));
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(XMLReporter.BUILD)) {
 								try {
 									dataJob.getResults().setNumber(Integer.parseInt(getString(nodeItem)));
@@ -159,12 +226,20 @@ public class ResultsParser {
 								}
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_SUCCESS)) {
 								dataJob.getResults().setPass(getInteger(nodeItem));
+							} else if (nodeItem.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_SUCCESS_DIF)) {
+								dataJob.getResults().setPassDif(getInteger(nodeItem));
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_SKIPPED)) {
 								dataJob.getResults().setSkip(getInteger(nodeItem));
+							} else if (nodeItem.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_SKIPPED_DIF)) {
+								dataJob.getResults().setSkipDif(getInteger(nodeItem));
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_FAILED)) {
 								dataJob.getResults().setFail(getInteger(nodeItem));
+							} else if (nodeItem.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_FAILED_DIF)) {
+								dataJob.getResults().setFailDif(getInteger(nodeItem));
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_TOTAL)) {
 								dataJob.getResults().setTotal(getInteger(nodeItem));
+							} else if (nodeItem.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_TOTAL_DIF)) {
+								dataJob.getResults().setTotalDif(getInteger(nodeItem));
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.CC_PACKAGES)) {
 								dataJob.getResults().setCcPackages(getInteger(nodeItem));
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.CC_FILES)) {
