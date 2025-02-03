@@ -50,9 +50,13 @@ public class TestResultsAggregatorProjectAction extends TestResultProjectAction 
 	
 	// For Tests
 	public static final String TEST_TOTAL = "TEST_TOTAL";
+	public static final String TEST_TOTAL_DIF = "TEST_TOTAL_DIF";
 	public static final String TEST_SUCCESS = "TEST_SUCCESS";
+	public static final String TEST_SUCCESS_DIF = "TEST_SUCCESS_DIF";
 	public static final String TEST_SKIPPED = "TEST_SKIPPED";
+	public static final String TEST_SKIPPED_DIF = "TEST_SKIPPED_DIF";
 	public static final String TEST_FAILED = "TEST_FAILED";
+	public static final String TEST_FAILED_DIF = "TEST_FAILED_DIF";
 	
 	// For Code Coverage
 	public static final String CC_PACKAGES = "CC_PACKAGES";
@@ -61,6 +65,12 @@ public class TestResultsAggregatorProjectAction extends TestResultProjectAction 
 	public static final String CC_METHODS = "CC_METHODS";
 	public static final String CC_LINES = "CC_LINES";
 	public static final String CC_CONDTITIONALS = "CC_CONDITIONALS";
+	
+	// For Configuration
+	public static final String IGNOREDISABLEDJOBS = "IGNOREDISABLEDJOBS";
+	public static final String IGNORENOTFOUNDJOBS = "IGNORENOTFOUNDJOBS";
+	public static final String IGNORERUNNINGJOBS = "IGNORERUNNINGJOBS";
+	public static final String COMPAREWITHPREVIOUSRUN = "COMPAREWITHPREVIOUSRUN";
 	
 	public TestResultsAggregatorProjectAction(Job<?, ?> project) {
 		super(project);

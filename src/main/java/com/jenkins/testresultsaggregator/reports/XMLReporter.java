@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.Properties;
 
+import com.jenkins.testresultsaggregator.TestResultsAggregator.AggregatorProperties;
 import com.jenkins.testresultsaggregator.TestResultsAggregatorProjectAction;
 import com.jenkins.testresultsaggregator.data.Aggregated;
 import com.jenkins.testresultsaggregator.data.Data;
@@ -23,10 +25,13 @@ public class XMLReporter {
 	
 	public static final String ROOT = "AGGREGATED";
 	public static final String RESULTS = "RESULTS";
+	public static final String CONFIG = "CONFIG";
 	public static final String JOBS = "JOBS";
 	public static final String JOB = "JOB";
 	public static final String NAME = "NAME";
 	public static final String STATUS = "STATUS";
+	public static final String STATUS_ADV = "STATUS_ADV";
+	public static final String DURATION = "DURATION";
 	public static final String URL = "URL";
 	public static final String BUILD = "BUILD";
 	
@@ -35,14 +40,21 @@ public class XMLReporter {
 		this.workspace = rootDir;
 	}
 	
-	public void generateXMLReport(Aggregated aggregated) {
+	public void generateXMLReport(Aggregated aggregated, Properties properties) {
 		try {
 			logger.print(LocalMessages.GENERATE.toString() + " " + LocalMessages.XML_REPORT.toString());
 			String fileName = workspace.getAbsolutePath() + System.getProperty("file.separator") + REPORT_XML_FILE;
 			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
 			writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			writer.println(S + ROOT + E);
-			
+			// Config
+			writer.println(TAB + S + CONFIG + E);
+			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.IGNOREDISABLEDJOBS, properties.getProperty(AggregatorProperties.IGNORE_DISABLED_JOBS.name())));
+			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.IGNORENOTFOUNDJOBS, properties.getProperty(AggregatorProperties.IGNORE_NOTFOUND_JOBS.name())));
+			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.IGNORERUNNINGJOBS, properties.getProperty(AggregatorProperties.IGNORE_RUNNING_JOBS.name())));
+			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.COMPAREWITHPREVIOUSRUN, properties.getProperty(AggregatorProperties.COMPARE_WITH_PREVIOUS_RUN.name())));
+			writer.println(TAB + SE + CONFIG + E);
+			// Results
 			writer.println(TAB + S + RESULTS + E);
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.JOB_SUCCESS, aggregated.getSuccessJobs()));
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.JOB_FIXED, aggregated.getFixedJobs()));
@@ -54,9 +66,13 @@ public class XMLReporter {
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.JOB_UNSTABLE_KEEP, aggregated.getKeepUnstableJobs()));
 			
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_TOTAL, aggregated.getResults().getTotal()));
+			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_TOTAL_DIF, aggregated.getResults().getTotalDif()));
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_SUCCESS, aggregated.getResults().getPass()));
+			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_SUCCESS_DIF, aggregated.getResults().getPassDif()));
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_FAILED, aggregated.getResults().getFail()));
+			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_FAILED_DIF, aggregated.getResults().getFailDif()));
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_SKIPPED, aggregated.getResults().getSkip()));
+			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_SKIPPED_DIF, aggregated.getResults().getSkipDif()));
 			writer.println(TAB + SE + RESULTS + E);
 			
 			writer.println(TAB + S + JOBS + E);
@@ -67,6 +83,8 @@ public class XMLReporter {
 						writer.println(TAB + TAB + TAB + xmlTag(NAME, dataJob.getJobName()));
 						if (dataJob.getResults() != null) {
 							writer.println(TAB + TAB + TAB + xmlTag(STATUS, dataJob.getResults().getStatus()));
+							writer.println(TAB + TAB + TAB + xmlTag(STATUS_ADV, dataJob.getResults().getStatusAdvanced()));
+							writer.println(TAB + TAB + TAB + xmlTag(DURATION, dataJob.getResults().getDuration()));
 							if (JobStatus.DISABLED.name().equalsIgnoreCase(dataJob.getResults().getStatus())) {
 								jobStatus(writer, dataJob, dataJob.getUrl(), null, false);
 							} else if (JobStatus.NOT_FOUND.name().equalsIgnoreCase(dataJob.getResults().getStatus())) {
@@ -106,9 +124,13 @@ public class XMLReporter {
 		writer.println(TAB + TAB + TAB + xmlTag(BUILD, build));
 		if (found && dataJob.getResults() != null) {
 			writer.println(TAB + TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_TOTAL, dataJob.getResults().getTotal()));
+			writer.println(TAB + TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_TOTAL_DIF, dataJob.getResults().getTotalDif()));
 			writer.println(TAB + TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_SUCCESS, dataJob.getResults().getPass()));
+			writer.println(TAB + TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_SUCCESS_DIF, dataJob.getResults().getPassDif()));
 			writer.println(TAB + TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_SKIPPED, dataJob.getResults().getSkip()));
+			writer.println(TAB + TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_SKIPPED_DIF, dataJob.getResults().getSkipDif()));
 			writer.println(TAB + TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_FAILED, dataJob.getResults().getFail()));
+			writer.println(TAB + TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_FAILED_DIF, dataJob.getResults().getFailDif()));
 			writer.println(TAB + TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.CC_PACKAGES, dataJob.getResults().getCcPackages()));
 			writer.println(TAB + TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.CC_FILES, dataJob.getResults().getCcFiles()));
 			writer.println(TAB + TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.CC_CLASSES, dataJob.getResults().getCcClasses()));

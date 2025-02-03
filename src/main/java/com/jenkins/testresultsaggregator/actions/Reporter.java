@@ -63,7 +63,7 @@ public class Reporter {
 			}
 		}
 		// Generate XML Report
-		new XMLReporter(logger, rootDir).generateXMLReport(aggregated);
+		new XMLReporter(logger, rootDir).generateXMLReport(aggregated, properties);
 		// Calculate and Generate Columns
 		if (!foundAtLeastOneGroupName) {
 			columns.remove(LocalMessages.COLUMN_GROUP);
