@@ -67,44 +67,17 @@ public class Analyzer {
 			data.setReportGroup(new ReportGroup());
 			
 			for (Job job : data.getJobs()) {
-				if (job.getResults() == null) {
-					job.setResults(new Results().calculate(job));
-				}
-				if (JobStatus.DISABLED.name().equalsIgnoreCase(job.getResults().getStatus()) ||
-						JobStatus.ABORTED.name().equalsIgnoreCase(job.getResults().getStatus()) ||
-						JobStatus.NOT_FOUND.name().equalsIgnoreCase(job.getResults().getStatus()) ||
-						JobStatus.NO_LAST_BUILD_DATA.name().equalsIgnoreCase(job.getResults().getStatus())) {
+				if (job.getResults() != null && (JobStatus.NOT_FOUND.name().equalsIgnoreCase(job.getResults().getStatus()) ||
+						JobStatus.NO_LAST_BUILD_DATA.name().equalsIgnoreCase(job.getResults().getStatus()))) {
+					// Do nothing
 				} else {
-					if (job.getLast().getResults() != null && !JobStatus.NOT_FOUND.name().equals(job.getResults().getStatus())) {
-						//
-						job.getResults().calculate(job);
-						// Description
-						job.getResults().setDescription(job.getLast().getDescription());
-						// Calculate Total
-						job.getResults().calculateTotal(job);
-						// Calculate Pass
-						job.getResults().calculatePass(job);
-						// Calculate Fail
-						// job.getResults().calculateFailedColor(job);
-						job.getResults().calculateFailed(job);
-						// Calculate Skipped
-						job.getResults().calculateSkipped(job);
-						// Calculate timestamp
-						job.getResults().calculateTimestamp(job, outOfDateResults);
-						// Calculate Changes
-						job.getResults().calculateChanges(job);
-						// Calculate Sonar Url
-						job.getResults().calculateSonar(job);
-						// Calculate Coverage Packages
-						job.getResults().calculateCCPackages(job);
-						job.getResults().calculateCCFiles(job);
-						job.getResults().calculateCCClasses(job);
-						job.getResults().calculateCCMethods(job);
-						job.getResults().calculateCCLines(job);
-						job.getResults().calculateCCConditions(job);
-						// Calculate Duration
-						if (job.getLast() != null) {
-							job.getResults().calculateDuration(job.getLast().getDuration());
+					if (job.getLast().getResults() != null) {
+						if (job.getResults() != null && job.getLast().getNumber() == job.getResults().getNumber() && !job.getLast().isBuilding()) {
+							// Already have results and requested the same results
+							calculate(job, outOfDateResults);
+						} else {
+							job.setResults(new Helper().calculate(job));
+							calculate(job, outOfDateResults);
 							// Total Duration
 							aggregated.setTotalDuration(aggregated.getTotalDuration() + job.getResults().getDuration());
 							// Total Changes
@@ -243,5 +216,34 @@ public class Analyzer {
 		aggregated.setResults(totalResults);
 		logger.println(LocalMessages.ANALYZE.toString() + " " + LocalMessages.FINISHED.toString());
 		return aggregated;
+	}
+	
+	private void calculate(Job job, String outOfDateResults) {
+		// Description
+		job.getResults().setDescription(job.getLast().getDescription());
+		// Calculate Total
+		job.getResults().calculateTotal(job);
+		// Calculate Pass
+		job.getResults().calculatePass(job);
+		// Calculate Fail
+		// job.getResults().calculateFailedColor(job);
+		job.getResults().calculateFailed(job);
+		// Calculate Skipped
+		job.getResults().calculateSkipped(job);
+		// Calculate timestamp
+		job.getResults().calculateTimestamp(job, outOfDateResults);
+		// Calculate Changes
+		job.getResults().calculateChanges(job);
+		// Calculate Sonar Url
+		job.getResults().calculateSonar(job);
+		// Calculate Coverage Packages
+		job.getResults().calculateCCPackages(job);
+		job.getResults().calculateCCFiles(job);
+		job.getResults().calculateCCClasses(job);
+		job.getResults().calculateCCMethods(job);
+		job.getResults().calculateCCLines(job);
+		job.getResults().calculateCCConditions(job);
+		// Calculate Duration
+		job.getResults().calculateDuration(job.getLast().getDuration());
 	}
 }

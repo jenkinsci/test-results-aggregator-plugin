@@ -98,10 +98,11 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		IGNORE_DISABLED_JOBS,
 		IGNORE_ABORTED_JOBS,
 		IGNORE_RUNNING_JOBS,
+		COMPARE_WITH_PREVIOUS_RUN,
 		INFLUXDB_URL,
 		INFLUXDB_TOKEN,
 		INFLUXDB_BUCKET,
-		INFLUXDB_ORG;
+		INFLUXDB_ORG
 	}
 	
 	public enum SortResultsBy {
@@ -178,12 +179,15 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		Aggregated aggregatedSavedData = null;
 		List<Data> validatedData = validateInputData(getDataFromDataPipeline(), jenkinsUrl);
 		validatedData = checkUserInputForInjection(validatedData);
+		//
 		if (compareWithPrevious()) {
-			aggregatedSavedData = getPreviousData(run.getPreviousSuccessfulBuild(), validatedData);
+			aggregatedSavedData = getPreviousData2(run.getPreviousSuccessfulBuild(), validatedData);
 		}
+		//
+		boolean configChanges = checkConfigChanges(aggregatedSavedData);
 		// Collect Data
 		Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
-		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs());
+		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges);
 		collector.closeJenkinsConnection();
 		// Analyze Results
 		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious());
@@ -214,11 +218,13 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		validatedData = checkUserInputForInjection(validatedData);
 		Aggregated aggregatedSavedData = null;
 		if (compareWithPrevious()) {
-			aggregatedSavedData = getPreviousData(build, validatedData);
+			aggregatedSavedData = getPreviousData2(build, validatedData);
 		}
+		//
+		boolean configChanges = checkConfigChanges(aggregatedSavedData);
 		// Collect Data
 		Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
-		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs());
+		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges);
 		collector.closeJenkinsConnection();
 		// Analyze Results
 		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious());
@@ -229,6 +235,27 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		build.addAction(new TestResultsAggregatorTestResultBuildAction(aggregated));
 		logger.println(LocalMessages.FINISHED_AGGREGATE.toString());
 		return true;
+	}
+	
+	private boolean checkConfigChanges(Aggregated aggregatedSavedData) {
+		boolean foundConfigChanges = false;
+		try {
+			if (aggregatedSavedData.getIgnoreDisabledJobs() != null && aggregatedSavedData.getIgnoreDisabledJobs().booleanValue() != getIgnoreDisabledJobs()) {
+				foundConfigChanges = true;
+			}
+			if (aggregatedSavedData.getIgnoreNotFoundJobs() != null && aggregatedSavedData.getIgnoreNotFoundJobs().booleanValue() != getIgnoreNotFoundJobs()) {
+				foundConfigChanges = true;
+			}
+			if (aggregatedSavedData.getIgnoreRunningJobs() != null && aggregatedSavedData.getIgnoreRunningJobs().booleanValue() != getIgnoreRunningJobs()) {
+				foundConfigChanges = true;
+			}
+			if (aggregatedSavedData.getCompareWithPreviousRun() != null && aggregatedSavedData.getCompareWithPreviousRun().booleanValue() != compareWithPrevious()) {
+				foundConfigChanges = true;
+			}
+		} catch (Exception ex) {
+			
+		}
+		return foundConfigChanges;
 	}
 	
 	private void initProperties() {
@@ -249,6 +276,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		properties.put(AggregatorProperties.IGNORE_DISABLED_JOBS.name(), getIgnoreDisabledJobs());
 		properties.put(AggregatorProperties.IGNORE_ABORTED_JOBS.name(), getIgnoreAbortedJobs());
 		properties.put(AggregatorProperties.IGNORE_RUNNING_JOBS.name(), getIgnoreRunningJobs());
+		properties.put(AggregatorProperties.COMPARE_WITH_PREVIOUS_RUN.name(), compareWithPrevious());
 		properties.put(AggregatorProperties.INFLUXDB_URL.name(), getInfluxdbUrl() != null ? getInfluxdbUrl() : "");
 		properties.put(AggregatorProperties.INFLUXDB_TOKEN.name(), getInfluxdbToken() != null ? getInfluxdbToken() : "");
 		properties.put(AggregatorProperties.INFLUXDB_BUCKET.name(), getInfluxdbBucket() != null ? getInfluxdbBucket() : "");

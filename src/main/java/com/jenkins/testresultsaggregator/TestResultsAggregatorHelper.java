@@ -233,4 +233,16 @@ public class TestResultsAggregatorHelper extends Notifier implements SimpleBuild
 		return null;
 	}
 	
+	public Aggregated getPreviousData2(Run build, List<Data> validatedData) {
+		if (build != null) {// Get Previous Saved Results
+			Aggregated previousSavedAggregatedResults = TestResultsAggregatorTestResultBuildAction.loadResults(build);
+			if (previousSavedAggregatedResults != null) {
+				// Check previous Data
+				previousSavedResults(validatedData, previousSavedAggregatedResults);
+			}
+			return previousSavedAggregatedResults;
+		}
+		return null;
+	}
+	
 }
