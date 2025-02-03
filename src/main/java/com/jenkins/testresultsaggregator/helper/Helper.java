@@ -19,6 +19,7 @@ import com.jenkins.testresultsaggregator.data.Job;
 import com.jenkins.testresultsaggregator.data.JobResults;
 import com.jenkins.testresultsaggregator.data.JobStatus;
 import com.jenkins.testresultsaggregator.data.Results;
+import com.offbytwo.jenkins.model.BuildResult;
 
 import hudson.FilePath;
 import hudson.remoting.VirtualChannel;
@@ -397,40 +398,6 @@ public class Helper {
 		}
 	}
 	
-	public static String calculateStatusJob(Job job) {
-		boolean reportPrevious = false;
-		if (job.getResults() != null && JobStatus.RUNNING_REPORT_PREVIOUS.name().equalsIgnoreCase(job.getResults().getStatus())) {
-			reportPrevious = true;
-		} else if (job.getPrevious() == null || (job.getPrevious() != null && job.getPrevious().getResults() == null)) {
-			return calculateStatus(reportPrevious, job.getLast().getResults().getStatus(), null);
-		}
-		return calculateStatus(reportPrevious, job.getLast().getResults().getStatus(), job.getPrevious().getResults().getStatus());
-	}
-	
-	public static String calculateStatus(boolean reportPrevious, String currentResult, String previousResult) {
-		if (previousResult == null) {
-			return currentResult;
-		} else {
-			if (reportPrevious) {
-				return currentResult + "*";
-			} else if (JobStatus.SUCCESS.name().equals(currentResult) && JobStatus.SUCCESS.name().equals(previousResult)) {
-				return JobStatus.SUCCESS.name();
-			} else if (JobStatus.SUCCESS.name().equals(currentResult) && JobStatus.FAILURE.name().equals(previousResult)) {
-				return JobStatus.FIXED.name();
-			} else if (JobStatus.SUCCESS.name().equals(currentResult) && JobStatus.UNSTABLE.name().equals(previousResult)) {
-				return JobStatus.FIXED.name();
-			} else if (JobStatus.UNSTABLE.name().equals(currentResult) && JobStatus.UNSTABLE.name().equals(previousResult)) {
-				return JobStatus.STILL_UNSTABLE.name();
-			} else if (JobStatus.FAILURE.name().equals(currentResult) && JobStatus.FAILURE.name().equals(previousResult)) {
-				return JobStatus.STILL_FAILING.name();
-			} else if (currentResult != null && currentResult.contains("*")) {
-				return currentResult.replace("*", "");
-			} else {
-				return currentResult;
-			}
-		}
-	}
-	
 	public static Double resolvePercentage(String percentage) {
 		if (Strings.isNullOrEmpty(percentage)) {
 			return -1D;
@@ -447,4 +414,137 @@ public class Helper {
 		return -1D;
 	}
 	
+	public Results calculate(Job job) {
+		Results results = new Results();
+		BuildResult status = job.getLast().getResult();
+		if (job.getLast().isBuilding()) {
+			status = BuildResult.BUILDING;
+		}
+		String statusAdvanced;
+		switch (status) {
+			case ABORTED:
+				calc(results, JobStatus.ABORTED.name(), job);
+				break;
+			case SUCCESS:
+				if (job.getPrevious() == null) {
+					calc(results, JobStatus.SUCCESS.name(), job);
+				} else {
+					statusAdvanced = calculateAdvancedStatusDecideLastResults(job);
+					calc(results, statusAdvanced, job);
+				}
+				break;
+			case FAILURE:
+				if (job.getPrevious() == null) {
+					calc(results, JobStatus.FAILURE.name(), job);
+				} else {
+					statusAdvanced = calculateAdvancedStatusDecideLastResults(job);
+					calc(results, statusAdvanced, job);
+				}
+				break;
+			case UNSTABLE:
+				if (job.getPrevious() == null) {
+					calc(results, JobStatus.UNSTABLE.name(), job);
+				} else {
+					statusAdvanced = calculateAdvancedStatusDecideLastResults(job);
+					calc(results, statusAdvanced, job);
+				}
+				break;
+			case BUILDING:
+				if (job.getPrevious() == null) {
+					calc(results, JobStatus.RUNNING.name(), job);
+				} else {
+					statusAdvanced = calculateAdvancedStatusDecideLastResults(job);
+					calc(results, statusAdvanced, job);
+				}
+				break;
+			case CANCELLED:
+				break;
+			case NOT_BUILT:
+				break;
+			case REBUILDING:
+				break;
+			case UNKNOWN:
+				break;
+			default:
+				break;
+		}
+		return results;
+	}
+	
+	private String calculateAdvancedStatusDecideLastResults(Job job) {
+		if (BuildResult.SUCCESS.equals(job.getLast().getResult()) && !BuildResult.SUCCESS.equals(job.getPrevious().getResult()) && !job.getLast().isBuilding()) {
+			return JobStatus.FIXED.name();
+		} else if (BuildResult.FAILURE.equals(job.getLast().getResult()) && BuildResult.FAILURE.equals(job.getPrevious().getResult())) {
+			return JobStatus.STILL_FAILING.name();
+		} else if (BuildResult.UNSTABLE.equals(job.getLast().getResult()) && BuildResult.UNSTABLE.equals(job.getPrevious().getResult())) {
+			return JobStatus.STILL_UNSTABLE.name();
+		} else if (job.getLast().isBuilding()) {
+			job.setLast(job.getPrevious());
+			job.setPrevious(null);
+			return JobStatus.RUNNING_REPORT_PREVIOUS.name();
+		}
+		return job.getLast().getResult().name();
+	}
+	
+	private void calc(Results results, String statusAdvanced, Job job) {
+		if (statusAdvanced.equalsIgnoreCase(JobStatus.RUNNING_REPORT_PREVIOUS.name())) {
+			results.setStatusAdvanced(job.getLast().getResults().getStatus() + "*");
+		} else {
+			results.setStatusAdvanced(statusAdvanced);
+		}
+		results.setStatus(job.getLast().getResults().getStatus());
+		results.setNumber(job.getLast().getResults().getNumber());
+		results.setDuration(job.getLast().getResults().getDuration());
+		results.setDescription(job.getLast().getResults().getDescription());
+		results.setBuilding(job.getLast().getResults().isBuilding());
+		results.setUrl(job.getLast().getResults().getUrl());
+		results.setSonarUrl(job.getLast().getResults().getSonarUrl());
+		if (job.getLast().getResults().getTimestamp() != null) {
+			results.setTimestamp(job.getLast().getResults().getTimestamp().toString());
+		} else {
+			results.setTimestamp("0");
+		}
+		results.setNumberOfChanges(job.getLast().getResults().getNumberOfChanges());
+		results.setChangesUrl(job.getLast().getResults().getChangesUrl());
+		// Tests
+		results.setPass(job.getLast().getResults().getPass());
+		results.setFail(job.getLast().getResults().getFail());
+		results.setSkip(job.getLast().getResults().getSkip());
+		results.setTotal(job.getLast().getResults().getTotal());
+		// Percentage
+		results.setPercentageReport(singDoubleSingle((double) (results.getPass() + results.getSkip()) * 100 / results.getTotal()));
+		if (job.getPrevious() != null) {
+			results.setPassDif(job.getLast().getResults().getPass() - job.getPrevious().getResults().getPass());
+			results.setFailDif(job.getLast().getResults().getFail() - job.getPrevious().getResults().getFail());
+			results.setSkipDif(job.getLast().getResults().getSkip() - job.getPrevious().getResults().getSkip());
+			results.setTotalDif(job.getLast().getResults().getTotal() - job.getPrevious().getResults().getTotal());
+		} else {
+			results.setPassDif(0);
+			results.setFailDif(0);
+			results.setSkipDif(0);
+			results.setTotalDif(0);
+		}
+		// Code Coverage
+		results.setCcPackages(job.getLast().getResults().getCcPackages());
+		results.setCcFiles(job.getLast().getResults().getCcFiles());
+		results.setCcClasses(job.getLast().getResults().getCcClasses());
+		results.setCcMethods(job.getLast().getResults().getCcMethods());
+		results.setCcLines(job.getLast().getResults().getCcLines());
+		results.setCcConditions(job.getLast().getResults().getCcConditions());
+		if (job.getPrevious() != null) {
+			results.setCcPackagesDif(job.getLast().getResults().getCcPackages() - job.getPrevious().getResults().getCcPackages());
+			results.setCcFilesDif(job.getLast().getResults().getCcFiles() - job.getPrevious().getResults().getCcFiles());
+			results.setCcClassesDif(job.getLast().getResults().getCcClasses() - job.getPrevious().getResults().getCcClasses());
+			results.setCcMethodsDif(job.getLast().getResults().getCcMethods() - job.getPrevious().getResults().getCcMethods());
+			results.setCcLinesDif(job.getLast().getResults().getCcLines() - job.getPrevious().getResults().getCcLines());
+			results.setCcConditionsDif(job.getLast().getResults().getCcConditions() - job.getPrevious().getResults().getCcConditions());
+		} else {
+			results.setCcPackagesDif(0);
+			results.setCcFilesDif(0);
+			results.setCcClassesDif(0);
+			results.setCcMethodsDif(0);
+			results.setCcLinesDif(0);
+			results.setCcConditionsDif(0);
+		}
+	}
 }
