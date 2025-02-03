@@ -31,6 +31,11 @@ public class Aggregated extends BaseResult {
 	private Long totalDuration = 0L;
 	private int totalNumberOfChanges = 0;
 	
+	private Boolean ignoreDisabledJobs;
+	private Boolean ignoreNotFoundJobs;
+	private Boolean ignoreRunningJobs;
+	private Boolean compareWithPreviousRun;
+	
 	private Run<?, ?> owner;
 	
 	public Aggregated() {
@@ -180,6 +185,18 @@ public class Aggregated extends BaseResult {
 		return Helper.countPercentage(results).toString();
 	}
 	
+	public Double calculatePercentageOfSuccessJobs() {
+		return Helper.countPercentageD(successJobs + fixedJobs, getTotalJobs());
+	}
+	
+	public Double calculatePercentageOfFailedJobs() {
+		return Helper.countPercentageD(failedJobs + keepFailJobs, getTotalJobs());
+	}
+	
+	public Double calculatePercentageOfUnstableJobs() {
+		return Helper.countPercentageD(unstableJobs + keepUnstableJobs, getTotalJobs());
+	}
+	
 	public String calculatePercentageOfJobs(boolean withColor, int fontSize, String status) {
 		if (withColor) {
 			return Helper.colorizePercentage(Helper.countPercentageD(successJobs + fixedJobs + unstableJobs + keepUnstableJobs, getTotalJobs()), fontSize, status);
@@ -291,6 +308,38 @@ public class Aggregated extends BaseResult {
 			dif = dif - previousResults.getFail();
 		}
 		return Helper.reportTestDiffs(null, Colors.FAILED, results.getFail(), dif);
+	}
+
+	public Boolean getIgnoreDisabledJobs() {
+		return ignoreDisabledJobs;
+	}
+
+	public void setIgnoreDisabledJobs(Boolean ignoreDisabledJobs) {
+		this.ignoreDisabledJobs = ignoreDisabledJobs;
+	}
+
+	public Boolean getIgnoreNotFoundJobs() {
+		return ignoreNotFoundJobs;
+	}
+
+	public void setIgnoreNotFoundJobs(Boolean ignoreNotFoundJobs) {
+		this.ignoreNotFoundJobs = ignoreNotFoundJobs;
+	}
+
+	public Boolean getIgnoreRunningJobs() {
+		return ignoreRunningJobs;
+	}
+
+	public void setIgnoreRunningJobs(Boolean ignoreRunningJobs) {
+		this.ignoreRunningJobs = ignoreRunningJobs;
+	}
+
+	public Boolean getCompareWithPreviousRun() {
+		return compareWithPreviousRun;
+	}
+
+	public void setCompareWithPreviousRun(Boolean compareWithPreviousRun) {
+		this.compareWithPreviousRun = compareWithPreviousRun;
 	}
 	
 }
