@@ -30,6 +30,9 @@ public class BuildWithDetailsAggregator extends BuildWithDetails {
 	}
 	
 	public Integer getBuildNumber() {
+		if (buildNumber == null) {
+			buildNumber = getNumber();
+		}
 		return buildNumber;
 	}
 	
