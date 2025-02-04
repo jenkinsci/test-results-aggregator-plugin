@@ -599,10 +599,14 @@ public class Results implements Serializable {
 	}
 	
 	public void calculatePercentage(Job job) {
-		if (JobStatus.ABORTED.name().equalsIgnoreCase(job.getResults().getStatus()) ||
-				JobStatus.DISABLED.name().equalsIgnoreCase(job.getResults().getStatus()) ||
-				JobStatus.NOT_FOUND.name().equalsIgnoreCase(job.getResults().getStatus()) ||
-				JobStatus.RUNNING.name().equalsIgnoreCase(job.getResults().getStatus())) {
+		String jobStatus = job.getResults().getStatusAdvanced();
+		if (Strings.isNullOrEmpty(jobStatus)) {
+			jobStatus = job.getResults().getStatus();
+		}
+		if (JobStatus.ABORTED.name().equalsIgnoreCase(jobStatus) ||
+				JobStatus.DISABLED.name().equalsIgnoreCase(jobStatus) ||
+				JobStatus.NOT_FOUND.name().equalsIgnoreCase(jobStatus) ||
+				JobStatus.RUNNING.name().equalsIgnoreCase(jobStatus)) {
 			setPercentage(null);
 		} else {
 			Double calculatedPercentage = Helper.countPercentage(job.getResults());
@@ -626,7 +630,7 @@ public class Results implements Serializable {
 	}
 	
 	public JobStatus getStatusFromEnum() {
-		return GetEnumFromString.get(JobStatus.class, status);
+		return GetEnumFromString.get(JobStatus.class, getStatusAdvanced());
 	}
 	
 	public String getStatusAdvanced() {
