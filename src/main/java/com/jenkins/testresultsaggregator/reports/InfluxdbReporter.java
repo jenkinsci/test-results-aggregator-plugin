@@ -49,10 +49,10 @@ public class InfluxdbReporter {
 						if (!job.getResults().getStatus().equalsIgnoreCase(job.getResults().getStatusAdvanced())) {
 							time = time.plusMillis(1000);// Add one sec for previously changes into calculated Advanced status in order to update the status in Grafana
 						}
-						Point pointJenkinsJob = Point.measurement(job.getJobName() + "#" + job.getLast().getNumber())
+						Point pointJenkinsJob = Point.measurement(job.getJobName() + "#" + job.getLast().getBuildNumber())
 								.time(time, WritePrecision.S)
 								.addTag("Jenkins Job Name", job.getJobName())
-								.addTag("Build", Integer.toString(job.getLast().getNumber()))
+								.addTag("Build", Integer.toString(job.getLast().getBuildNumber()))
 								.addTag("Name", job.getJobNameFromFriendlyName())
 								.addTag("Url", job.getUrl())
 								.addTag("Group", data.getGroupName())
