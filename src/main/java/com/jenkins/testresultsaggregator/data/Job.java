@@ -134,6 +134,9 @@ public class Job extends AbstractDescribableImpl<Job> implements Serializable {
 	}
 	
 	public Boolean getIsBuilding() {
+		if (isBuilding == null) {
+			return false;
+		}
 		return isBuilding;
 	}
 	
