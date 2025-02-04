@@ -153,6 +153,9 @@ public class Results implements Serializable {
 	}
 	
 	public Long getDuration() {
+		if (duration == null) {
+			return 0L;
+		}
 		return duration;
 	}
 	
