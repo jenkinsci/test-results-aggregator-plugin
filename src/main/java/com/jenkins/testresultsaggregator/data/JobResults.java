@@ -29,6 +29,10 @@ public class JobResults implements Serializable {
 	private Long timestamp;
 	private Double percentage;
 	
+	public JobResults() {
+		
+	}
+	
 	public String getStatus() {
 		return status;
 	}
