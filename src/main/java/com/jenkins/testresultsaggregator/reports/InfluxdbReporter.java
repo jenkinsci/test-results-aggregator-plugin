@@ -46,7 +46,7 @@ public class InfluxdbReporter {
 								&& !"RUNNING".equalsIgnoreCase(job.getResults().getStatus())) {
 							time = time.plusMillis(1000);// Add one sec for previously RUNNING jobs and last status != RUNNING in order to update the status in Grafana
 						}
-						if (!job.getResults().getStatus().equalsIgnoreCase(job.getResults().getStatusAdvanced())) {
+						if (job.getResults() != null && job.getResults().getStatus() != null && !job.getResults().getStatus().equalsIgnoreCase(job.getResults().getStatusAdvanced())) {
 							time = time.plusMillis(1000);// Add one sec for previously changes into calculated Advanced status in order to update the status in Grafana
 						}
 						Point pointJenkinsJob = Point.measurement(job.getJobName() + "#" + job.getLast().getBuildNumber())

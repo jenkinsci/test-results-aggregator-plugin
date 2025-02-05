@@ -296,8 +296,14 @@ public class Collector {
 						job.setLast(new BuildWithDetailsAggregator());
 						job.setLast(getLastBuildDetails(job));
 						job.getLast().setResults(calculateResults(job.getLast()));
+						if (job.getLast().getResult() != null) {
+							job.getLast().getResults().setStatus(job.getLast().getResult().name());
+						}
 						job.setIsBuilding(job.getLast().isBuilding());
-						text.append("Job '" + job.getJobName() + "' found build number #" + job.getLast().getNumber());
+						if (job.getIsBuilding()) {
+							job.getLast().getResults().setStatus(JobStatus.RUNNING.name());
+						}
+						text.append("Job '" + job.getJobName() + "' found build number #" + job.getLast().getBuildNumber());
 						collectData(text, job, ignoreRunningJobs, compareWithPreviousRun, configChanges);
 						text.append(LocalMessages.FINISHED.toString());
 					}
@@ -342,11 +348,7 @@ public class Collector {
 				}
 				break;
 			case RUNNING:
-				if (ignoreRunningJobs) {
-					getPrevious(text, job, configChanges);
-				} else {
-					text.append(" running");
-				}
+				handleRunning(text, job);
 				break;
 			case NOT_FOUND:
 				break;
@@ -365,25 +367,30 @@ public class Collector {
 		}
 	}
 	
-	private void getPrevious(StringBuilder text, Job job, boolean configChanges) throws Exception {
+	private int resolvePreviousBuildNumber(Job job, boolean configChanges) {
+		// Resolve previous build number from Saved Results
 		int previousBuildNumber = 0;
-		// Resolve previous from Saved Results
 		if (job.getResults() != null) {
 			previousBuildNumber = job.getResults().getNumber();
 		}
-		// Previous saved Results could be 0 , resolve from Jenkins
+		// Previous build number could be 0, resolve from Jenkins
 		if (previousBuildNumber == 0 || configChanges) {
 			previousBuildNumber = resolvePreviousBuildNumberFromBuild(job, 2);
 		}
-		// Reset job status and Results if previous was running and now its not
+		return previousBuildNumber;
+	}
+	
+	private void getPrevious(StringBuilder text, Job job, boolean configChanges) throws Exception {
+		int previousBuildNumber = resolvePreviousBuildNumber(job, configChanges);
+		// Reset job status and Results if previous Result was running and now its not
 		if (!job.getLast().isBuilding() && job.getResults() != null && JobStatus.RUNNING.name().equalsIgnoreCase(job.getResults().getStatus())) {
 			job.setPrevious(null);
 			job.setResults(null);
 			previousBuildNumber = 0;
 		}
-		if (previousBuildNumber == job.getLast().getNumber() && !job.getLast().isBuilding()) {
+		if (previousBuildNumber == job.getLast().getBuildNumber() && !job.getIsBuilding()) {
 			// No new run for this job since the last Test Results Aggregator run
-			text.append(", previous (Results) build #" + previousBuildNumber);
+			text.append(", previous saved build #" + previousBuildNumber);
 			if (!Strings.isNullOrEmpty(job.getResults().getStatusAdvanced())) {
 				text.append(" with status " + job.getResults().getStatusAdvanced());
 			} else {
@@ -394,7 +401,7 @@ public class Collector {
 			job.getPrevious().setBuildNumber(previousBuildNumber);
 		} else {
 			if (previousBuildNumber > 0) {
-				text.append(", previous build #" + previousBuildNumber);
+				text.append(", previous new build #" + previousBuildNumber);
 				BuildWithDetailsAggregator previous = getBuildDetails(job, previousBuildNumber);
 				if (previous != null) {
 					job.setPrevious(previous);
@@ -403,100 +410,21 @@ public class Collector {
 					// Reset current results
 					job.setResults(null);
 				}
+			} else if (job.getResults() != null) {
+				text.append(", previous build #" + job.getResults().getNumber());
 			} else {
 				text.append(", previous build #" + null);
 			}
 		}
 	}
 	
-	private void previousImp(StringBuilder text, Job job, boolean ignoreRunningJobs, boolean compareWithPreviousRun) throws Exception {
-		text.append(" with status");
-		if (job.getLast().isBuilding()) {
-			if (ignoreRunningJobs) {
-				// Check if running and previous was again running ? what is going to be saved into aggregated.xml results ?
-				int previousBuildNumberFromJenkins = 0;
-				int previousBuildNumberFromResults = 0;
-				if (job.getResults() != null) {
-					previousBuildNumberFromResults = job.getResults().getNumber();
-				}
-				boolean foundResults = false;
-				if (previousBuildNumberFromResults > 0) {
-					// Found previousBuildNumberFromResults
-					BuildWithDetailsAggregator previousResult = getBuildDetails(job, previousBuildNumberFromResults);
-					if (previousResult != null) {
-						text.append(" building(Results), previous build #" + previousBuildNumberFromResults);
-						job.setLast(previousResult);
-						job.getLast().setBuildNumber(previousBuildNumberFromResults);
-						job.getLast().setResults(calculateResults(job.getLast()));
-						job.getResults().setStatus(JobStatus.RUNNING_REPORT_PREVIOUS.name());
-						foundResults = true;
-					}
-				}
-				if (!foundResults) {
-					previousBuildNumberFromJenkins = resolvePreviousBuildNumberFromBuild(job, 2);
-					if (previousBuildNumberFromJenkins > 0) {
-						BuildWithDetailsAggregator previousResult = getBuildDetails(job, previousBuildNumberFromJenkins);
-						if (previousResult != null && previousBuildNumberFromJenkins > 0) {
-							text.append(" building, previous build #" + previousBuildNumberFromJenkins);
-							job.setLast(previousResult);
-							job.getLast().setBuildNumber(previousBuildNumberFromJenkins);
-							job.getLast().setResults(calculateResults(job.getLast()));
-							job.getResults().setStatus(JobStatus.RUNNING_REPORT_PREVIOUS.name());
-						}
-					} else {
-						job.setResults(new Results(JobStatus.RUNNING.name(), job.getUrl()));
-					}
-				}
-			} else {
-				text.append(" running");
-				job.setResults(new Results(JobStatus.RUNNING.name(), job.getUrl()));
-			}
+	private void handleRunning(StringBuilder text, Job job) throws Exception {
+		//
+		job.setPrevious(null);
+		if (job.getResults() == null) { // Not found previously saved results
+			text.append(", previous build #" + null);
 		} else {
-			if (job.getLast().getResult() != null) {
-				text.append(" " + job.getLast().getResult().toString());
-			}
-			if (compareWithPreviousRun) {
-				int previousBuildNumber = 0;
-				int previousBuildNumberSaved = 0;
-				if (job.getResults() == null) {
-					// Not Found previously saved , resolve from jenkins
-					job.setResults(new Results(JobStatus.FOUND.name(), job.getUrl()));
-				} else {
-					// Found previously saved results
-					previousBuildNumberSaved = job.getResults().getNumber();
-				}
-				if (previousBuildNumberSaved > 0) {
-					previousBuildNumber = previousBuildNumberSaved;
-					text.append(" compare with #" + "previously saved");
-				} else {
-					previousBuildNumber = resolvePreviousBuildNumberFromBuild(job, 2);
-					text.append(" compare with #" + previousBuildNumber);
-				}
-				// There is no new run since the previous aggregator run
-				if (previousBuildNumber == job.getLast().getNumber() || previousBuildNumber == previousBuildNumberSaved
-						&& !JobStatus.RUNNING.name().equalsIgnoreCase(job.getResults().getStatus())) {
-					job.setPrevious(job.getLast());
-					job.getPrevious().setBuildNumber(previousBuildNumber);
-					job.getPrevious().setResults(job.getLast().getResults());
-					if (job.getResults() != null) {
-						// Keep the previous calculated status if any but not the RUNNING status
-						job.getPrevious().getResults().setStatus(job.getResults().getStatus());
-						text.append(" with status " + job.getResults().getStatus());
-					}
-				} else {
-					// New run since last aggregator run or aggregator has not saved data for this run
-					BuildWithDetailsAggregator previousOfPreviousResult = getBuildDetails(job, previousBuildNumber);
-					if (previousOfPreviousResult != null && previousBuildNumber > 0) {
-						job.setPrevious(previousOfPreviousResult);
-						job.getPrevious().setBuildNumber(previousBuildNumber);
-						job.getPrevious().setResults(calculateResults(job.getPrevious()));
-						text.append(" with status " + job.getPrevious().getResults().getStatus());
-					}
-				}
-				job.setResults(new Results(job.getLast().getResults().getStatus(), job.getUrl()));
-			} else {
-				job.setPrevious(null);
-			}
+			text.append(", previous build #" + job.getResults().getNumber() + " with status " + job.getResults().getStatus());
 		}
 	}
 	
@@ -530,38 +458,4 @@ public class Collector {
 		return 0;
 	}
 	
-	/*private <T> T getData(String urlString, String username, String password, Class<T> clazz) throws Exception {
-		String response = getHttp(urlString, username, password);
-		if (response != null) {
-			ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-					.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-					.configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true)
-					.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false)
-					.configure(DeserializationFeature.READ_ENUMS_USING_TO_STRING, true)
-					.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
-			return mapper.readValue(response, clazz);
-		}
-		throw new Exception("Null response");
-	}
-	
-	private String getHttp(String urlString, String username, String password) throws Exception {
-		HttpGet request = new HttpGet(urlString);
-		CredentialsProvider provider = new BasicCredentialsProvider();
-		provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
-		try (CloseableHttpClient httpClient = HttpClientBuilder.create()
-				.setDefaultCredentialsProvider(provider)
-				.build();
-				CloseableHttpResponse response = httpClient.execute(request)) {
-			HttpEntity entity = response.getEntity();
-			if (entity != null) {
-				String responseAsString = EntityUtils.toString(entity);
-				if (Strings.isNullOrEmpty(responseAsString) || "{}".equalsIgnoreCase(responseAsString)) {
-					return null;
-				} else {
-					return responseAsString;
-				}
-			}
-		}
-		return null;
-	}*/
 }

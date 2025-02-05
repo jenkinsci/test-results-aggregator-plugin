@@ -26,7 +26,7 @@ public class Analyzer {
 		this.logger = logger;
 	}
 	
-	public Aggregated analyze(Aggregated aggregatedSavedData, List<Data> listData, Properties properties, boolean compareWithPrevious) {
+	public Aggregated analyze(Aggregated aggregatedSavedData, List<Data> listData, Properties properties, boolean compareWithPrevious, boolean ignoreRunning) {
 		// Resolve
 		String outOfDateResults = properties.getProperty(TestResultsAggregator.AggregatorProperties.OUT_OF_DATE_RESULTS_ARG.name());
 		// Check if Groups/Names are used
@@ -72,21 +72,19 @@ public class Analyzer {
 					// Do nothing
 				} else {
 					if (job.getLast().getResults() != null) {
-						if (job.getResults() != null && job.getLast().getNumber() == job.getResults().getNumber() && !job.getLast().isBuilding()) {
+						if (job.getResults() != null && job.getLast().getBuildNumber() == job.getResults().getNumber() && !job.getIsBuilding()) {
 							// Already have results and requested the same results
-							calculate(job, outOfDateResults);
+							calculateReport(job, outOfDateResults, ignoreRunning);
 						} else {
-							job.setResults(new Helper().calculate(job));
-							calculate(job, outOfDateResults);
+							new Helper().calculateNewResults(job, ignoreRunning);
+							calculateReport(job, outOfDateResults, ignoreRunning);
 							// Total Duration
 							aggregated.setTotalDuration(aggregated.getTotalDuration() + job.getResults().getDuration());
 							// Total Changes
 							aggregated.setTotalNumberOfChanges(aggregated.getTotalNumberOfChanges() + job.getResults().getNumberOfChanges());
 						}
-						// Calculate Percentage
-						job.getResults().calculatePercentage(job);
 						// Calculate Group
-						String jobStatus = job.getResults().getStatus();
+						String jobStatus = job.getResults().getStatusAdvanced();
 						if (jobStatus != null) {
 							if (jobStatus.startsWith(JobStatus.SUCCESS.name())) {
 								data.getReportGroup().setJobSuccess(data.getReportGroup().getJobSuccess() + 1);
@@ -96,7 +94,7 @@ public class Analyzer {
 								data.getReportGroup().setJobSuccess(data.getReportGroup().getJobSuccess() + 1);
 								aggregated.setFixedJobs(aggregated.getFixedJobs() + 1);
 								jobSuccess++;
-							} else if (jobStatus.startsWith(JobStatus.RUNNING.name()) && ("false".equalsIgnoreCase((String) properties.get(AggregatorProperties.IGNORE_RUNNING_JOBS.name())) || !compareWithPrevious)) {
+							} else if (jobStatus.startsWith(JobStatus.RUNNING.name()) && (!ignoreRunning || !compareWithPrevious)) {
 								foundRunning = true;
 								data.getReportGroup().setJobRunning(data.getReportGroup().getJobRunning() + 1);
 								aggregated.setRunningJobs(aggregated.getRunningJobs() + 1);
@@ -138,8 +136,10 @@ public class Analyzer {
 						resultsPerGroup.setSkip(resultsPerGroup.getSkip() + job.getLast().getResults().getSkip());
 						resultsPerGroup.setFail(resultsPerGroup.getFail() + job.getLast().getResults().getFail());
 						resultsPerGroup.setTotal(resultsPerGroup.getTotal() + job.getLast().getResults().getTotal());
-						// Calculate Total Tests for Summary Column
-						totalResults.addResults(job.getResults());
+						// Calculate Total Tests for Summary Column , exclude RUNNING when ignore running is false
+						if (!job.getIsBuilding() && (!ignoreRunning || !compareWithPrevious)) {
+							totalResults.addResults(job.getResults());
+						}
 						// Has tests
 						if (job.getLast().getResults().getTotal() <= 0) {
 							isOnlyTestIntoGroup = false;
@@ -218,32 +218,37 @@ public class Analyzer {
 		return aggregated;
 	}
 	
-	private void calculate(Job job, String outOfDateResults) {
+	private void calculateReport(Job job, String outOfDateResults, boolean ignoreRunningJobs) {
 		// Description
 		job.getResults().setDescription(job.getLast().getDescription());
-		// Calculate Total
-		job.getResults().calculateTotal(job);
-		// Calculate Pass
-		job.getResults().calculatePass(job);
-		// Calculate Fail
-		// job.getResults().calculateFailedColor(job);
-		job.getResults().calculateFailed(job);
-		// Calculate Skipped
-		job.getResults().calculateSkipped(job);
-		// Calculate timestamp
-		job.getResults().calculateTimestamp(job, outOfDateResults);
-		// Calculate Changes
-		job.getResults().calculateChanges(job);
-		// Calculate Sonar Url
-		job.getResults().calculateSonar(job);
-		// Calculate Coverage Packages
-		job.getResults().calculateCCPackages(job);
-		job.getResults().calculateCCFiles(job);
-		job.getResults().calculateCCClasses(job);
-		job.getResults().calculateCCMethods(job);
-		job.getResults().calculateCCLines(job);
-		job.getResults().calculateCCConditions(job);
-		// Calculate Duration
-		job.getResults().calculateDuration(job.getLast().getDuration());
+		if (!job.getIsBuilding() || ignoreRunningJobs) {
+			// Calculate Total
+			job.getResults().calculateTotal(job);
+			// Calculate Pass
+			job.getResults().calculatePass(job);
+			// Calculate Fail
+			// job.getResults().calculateFailedColor(job);
+			job.getResults().calculateFailed(job);
+			// Calculate Skipped
+			job.getResults().calculateSkipped(job);
+			// Calculate timestamp
+			job.getResults().calculateTimestamp(job, outOfDateResults);
+			// Calculate Changes
+			job.getResults().calculateChanges(job);
+			// Calculate Sonar Url
+			job.getResults().calculateSonar(job);
+			// Calculate Coverage Packages
+			job.getResults().calculateCCPackages(job);
+			job.getResults().calculateCCFiles(job);
+			job.getResults().calculateCCClasses(job);
+			job.getResults().calculateCCMethods(job);
+			job.getResults().calculateCCLines(job);
+			job.getResults().calculateCCConditions(job);
+			// Calculate Duration
+			job.getResults().calculateDuration(job.getLast().getDuration());
+			// Calculate Percentage
+			job.getResults().calculatePercentage(job);
+		}
 	}
+	
 }
