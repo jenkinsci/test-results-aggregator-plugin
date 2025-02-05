@@ -78,11 +78,11 @@ public class Analyzer {
 						} else {
 							new Helper().calculateNewResults(job, ignoreRunning);
 							calculateReport(job, outOfDateResults, ignoreRunning);
-							// Total Duration
-							aggregated.setTotalDuration(aggregated.getTotalDuration() + job.getResults().getDuration());
-							// Total Changes
-							aggregated.setTotalNumberOfChanges(aggregated.getTotalNumberOfChanges() + job.getResults().getNumberOfChanges());
 						}
+						// Total Duration
+						aggregated.setTotalDuration(aggregated.getTotalDuration() + job.getResults().getDuration());
+						// Total Changes
+						aggregated.setTotalNumberOfChanges(aggregated.getTotalNumberOfChanges() + job.getResults().getNumberOfChanges());
 						// Calculate Group
 						String jobStatus = job.getResults().getStatusAdvanced();
 						if (jobStatus != null) {
@@ -219,8 +219,6 @@ public class Analyzer {
 	}
 	
 	private void calculateReport(Job job, String outOfDateResults, boolean ignoreRunningJobs) {
-		// Description
-		job.getResults().setDescription(job.getLast().getDescription());
 		if (!job.getIsBuilding() || ignoreRunningJobs) {
 			// Calculate Total
 			job.getResults().calculateTotal(job);
@@ -244,10 +242,14 @@ public class Analyzer {
 			job.getResults().calculateCCMethods(job);
 			job.getResults().calculateCCLines(job);
 			job.getResults().calculateCCConditions(job);
-			// Calculate Duration
-			job.getResults().calculateDuration(job.getLast().getDuration());
 			// Calculate Percentage
 			job.getResults().calculatePercentage(job);
+			if (job.getLast() != null) {
+				// Description
+				job.getResults().setDescription(job.getLast().getDescription());
+				// Calculate Duration
+				job.getResults().calculateDuration(job.getLast().getDuration());
+			}
 		}
 	}
 	
