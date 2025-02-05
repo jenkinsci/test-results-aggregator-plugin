@@ -289,8 +289,8 @@ public class Collector {
 							job.setLast(getLastBuildDetails(job));
 							job.getLast().setResults(calculateResults(job.getLast()));
 							job.getLast().getResults().setStatus(JobStatus.DISABLED.name());
-							job.setResults(new Results(JobStatus.DISABLED.name(), job.getUrl()));
 						}
+						job.setResults(new Results(JobStatus.DISABLED.name(), job.getUrl()));
 					} else if (job.getJob().isBuildable() && !job.getJob().hasLastBuildRun()) {
 						text.append("Job '" + job.getJobName() + "' found " + JobStatus.NO_LAST_BUILD_DATA.name());
 						job.setResults(new Results(JobStatus.NO_LAST_BUILD_DATA.name(), job.getUrl()));

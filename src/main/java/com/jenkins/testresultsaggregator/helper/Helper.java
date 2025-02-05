@@ -470,11 +470,11 @@ public class Helper {
 	}
 	
 	private String calculateAdvancedStatusDecideLastResults(Job job, boolean ignoreRunningJobs) {
-		if (BuildResult.SUCCESS.equals(job.getLast().getResult()) && !BuildResult.SUCCESS.equals(job.getPrevious().getResult()) && !job.getLast().isBuilding()) {
+		if (BuildResult.SUCCESS.equals(job.getLast().getResult()) && job.getPrevious() != null && !BuildResult.SUCCESS.equals(job.getPrevious().getResult()) && !job.getLast().isBuilding()) {
 			return JobStatus.FIXED.name();
-		} else if (BuildResult.FAILURE.equals(job.getLast().getResult()) && BuildResult.FAILURE.equals(job.getPrevious().getResult())) {
+		} else if (BuildResult.FAILURE.equals(job.getLast().getResult()) && job.getPrevious() != null && BuildResult.FAILURE.equals(job.getPrevious().getResult())) {
 			return JobStatus.STILL_FAILING.name();
-		} else if (BuildResult.UNSTABLE.equals(job.getLast().getResult()) && BuildResult.UNSTABLE.equals(job.getPrevious().getResult())) {
+		} else if (BuildResult.UNSTABLE.equals(job.getLast().getResult()) && job.getPrevious() != null && BuildResult.UNSTABLE.equals(job.getPrevious().getResult())) {
 			return JobStatus.STILL_UNSTABLE.name();
 		} else if (job.getLast().isBuilding() && ignoreRunningJobs) {
 			return JobStatus.RUNNING_REPORT_PREVIOUS.name();
