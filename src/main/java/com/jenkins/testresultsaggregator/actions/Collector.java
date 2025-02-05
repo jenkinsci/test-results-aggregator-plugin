@@ -27,8 +27,6 @@ import com.offbytwo.jenkins.model.Build;
 import com.offbytwo.jenkins.model.BuildWithDetails;
 import com.offbytwo.jenkins.model.FolderJob;
 
-import hudson.util.Secret;
-
 public class Collector {
 	
 	private boolean debugMode = false;
@@ -47,10 +45,10 @@ public class Collector {
 	JenkinsHttpConnection client;
 	String passwordPlainText;
 	
-	public Collector(String jenkinsUrl, String username, Secret password, PrintStream printStream, List<Data> data) throws IOException {
+	public Collector(String jenkinsUrl, String username, String password, PrintStream printStream, List<Data> data) throws IOException {
 		this.logger = printStream;
 		if (password != null) {
-			this.passwordPlainText = password.getPlainText();
+			this.passwordPlainText = password;
 		}
 		try {
 			this.jenkins = new JenkinsServer(new URI(jenkinsUrl), username, passwordPlainText);

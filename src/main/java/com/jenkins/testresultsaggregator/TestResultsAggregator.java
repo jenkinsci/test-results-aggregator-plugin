@@ -25,6 +25,7 @@ import com.jenkins.testresultsaggregator.actions.Reporter;
 import com.jenkins.testresultsaggregator.data.Aggregated;
 import com.jenkins.testresultsaggregator.data.Data;
 import com.jenkins.testresultsaggregator.data.DataPipeline;
+import com.jenkins.testresultsaggregator.data.GlobalConfigDTO;
 import com.jenkins.testresultsaggregator.data.Job;
 import com.jenkins.testresultsaggregator.helper.LocalMessages;
 import com.offbytwo.jenkins.JenkinsServer;
@@ -75,7 +76,14 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 	private String influxdbBucket;
 	private String influxdbOrg;
 	
+	private String overrideJenkinsBaseURL;
+	private String overrideAPIAccountUsername;
+	private String overrideAPIAccountPassword;
+	private String overrideMailNotificationFrom;
+	
 	private Properties properties;
+	private GlobalConfigDTO globalConfigDTO;
+	
 	public static final String DISPLAY_NAME = "Job Results Aggregated";
 	public static final String GRAPH_NAME_JOBS = "Job Results Trend";
 	public static final String GRAPH_NAME_TESTS = "Test Results Trend";
@@ -99,10 +107,16 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		IGNORE_ABORTED_JOBS,
 		IGNORE_RUNNING_JOBS,
 		COMPARE_WITH_PREVIOUS_RUN,
+		
 		INFLUXDB_URL,
 		INFLUXDB_TOKEN,
 		INFLUXDB_BUCKET,
-		INFLUXDB_ORG
+		INFLUXDB_ORG,
+		
+		OVERRIDE_JENKINS_BASEURL,
+		OVERRIDE_API_ACCOUNT_USERNAME,
+		OVERRIDE_API_ACCOUNT_PASSWORD,
+		OVERRIDE_MAIL_NOTIFICATION_FROM;
 	}
 	
 	public enum SortResultsBy {
@@ -136,7 +150,8 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 			final List<Data> data, final List<DataPipeline> jobs, String beforebody, String afterbody, String theme,
 			String sortresults,
 			String columns, Boolean compareWithPreviousRun, Boolean ignoreNotFoundJobs, Boolean ignoreDisabledJobs, Boolean ignoreAbortedJobs, Boolean ignoreRunningJobs,
-			String influxdbUrl, String influxdbToken, String influxdbBucket, String influxdbOrg) {
+			String influxdbUrl, String influxdbToken, String influxdbBucket, String influxdbOrg,
+			String overrideJenkinsBaseURL, String overrideAPIAccountUsername, String overrideAPIAccountPassword, String overrideMailNotificationFrom) {
 		this.setRecipientsList(recipientsList);
 		this.setRecipientsListBCC(recipientsListBCC);
 		this.setRecipientsListCC(recipientsListCC);
@@ -159,25 +174,31 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		this.setInfluxdbToken(influxdbToken);
 		this.setInfluxdbBucket(influxdbBucket);
 		this.setInfluxdbOrg(influxdbOrg);
+		this.setOverrideAPIAccountPassword(overrideAPIAccountPassword);
+		this.setOverrideAPIAccountUsername(overrideAPIAccountUsername);
+		this.setOverrideJenkinsBaseURL(overrideJenkinsBaseURL);
+		this.setOverrideMailNotificationFrom(overrideMailNotificationFrom);
 	}
 	
 	/* In use from Pipeline Syntax */
 	@Override
 	public void perform(Run<?, ?> run, FilePath workspace, EnvVars env, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
 		PrintStream logger = listener.getLogger();
-		Descriptor desc = getDescriptor();
 		logger.println(LocalMessages.START_AGGREGATE.toString());
+		Descriptor desc = getDescriptor();
+		globalConfigDTO = new GlobalConfigDTO(resolveJenkinsUrl(env, logger), desc.getUsername(), desc.getPassword().getPlainText(), desc.getMailNotificationFrom());
 		//
 		initProperties();
+		// Override Global config
+		globalConfigDTO = overrideGlobalConfigiguration(globalConfigDTO);
 		// Resolve Variables
 		resolveVariables(properties, null, run.getEnvironment(listener));
 		// Resolve Columns
 		List<LocalMessages> localizedColumns = calculateColumns(getColumns());
-		//
-		String jenkinsUrl = resolveJenkinsUrl(env, logger);
+		
 		// Validate Input Data
 		Aggregated aggregatedSavedData = null;
-		List<Data> validatedData = validateInputData(getDataFromDataPipeline(), jenkinsUrl);
+		List<Data> validatedData = validateInputData(getDataFromDataPipeline(), globalConfigDTO.getJenkinsUrl());
 		validatedData = checkUserInputForInjection(validatedData);
 		//
 		if (compareWithPrevious()) {
@@ -186,13 +207,13 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		//
 		boolean configChanges = checkConfigChanges(aggregatedSavedData);
 		// Collect Data
-		Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
+		Collector collector = new Collector(globalConfigDTO.getJenkinsUrl(), globalConfigDTO.getUserName(), globalConfigDTO.getPassword(), listener.getLogger(), validatedData);
 		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges, ignoreDisabledJobs);
 		collector.closeJenkinsConnection();
 		// Analyze Results
 		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious(), getIgnoreRunningJobs());
 		// Reporter for HTML and mail
-		Reporter reporter = new Reporter(logger, workspace, run.getRootDir(), desc.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs);
+		Reporter reporter = new Reporter(logger, workspace, run.getRootDir(), globalConfigDTO.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs);
 		reporter.publishResuts(aggregated, properties, localizedColumns, run.getRootDir());
 		// Add Build Action
 		run.addAction(new TestResultsAggregatorTestResultBuildAction(aggregated));
@@ -203,18 +224,19 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 	@Override
 	public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
 		PrintStream logger = listener.getLogger();
-		Descriptor desc = getDescriptor();
 		logger.println(LocalMessages.START_AGGREGATE.toString());
+		Descriptor desc = getDescriptor();
+		globalConfigDTO = new GlobalConfigDTO(resolveJenkinsUrl(build.getEnvironment(listener), logger), desc.getUsername(), desc.getPassword().getPlainText(), desc.getMailNotificationFrom());
 		//
 		initProperties();
+		// Override Global config
+		globalConfigDTO = overrideGlobalConfigiguration(globalConfigDTO);
 		// Resolve Variables
 		resolveVariables(properties, build.getBuildVariableResolver(), build.getEnvironment(listener));
 		// Resolve Columns
 		List<LocalMessages> localizedColumns = calculateColumns(getColumns());
-		//
-		String jenkinsUrl = resolveJenkinsUrl(build.getEnvironment(listener), logger);
 		// Validate Input Data
-		List<Data> validatedData = validateInputData(getData(), jenkinsUrl);
+		List<Data> validatedData = validateInputData(getData(), globalConfigDTO.getJenkinsUrl());
 		validatedData = checkUserInputForInjection(validatedData);
 		Aggregated aggregatedSavedData = null;
 		if (compareWithPrevious()) {
@@ -223,18 +245,34 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		//
 		boolean configChanges = checkConfigChanges(aggregatedSavedData);
 		// Collect Data
-		Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
+		Collector collector = new Collector(globalConfigDTO.getJenkinsUrl(), globalConfigDTO.getUserName(), globalConfigDTO.getPassword(), listener.getLogger(), validatedData);
 		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges, ignoreDisabledJobs);
 		collector.closeJenkinsConnection();
 		// Analyze Results
 		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious(), getIgnoreRunningJobs());
 		// Reporter for HTML and mail
-		Reporter reporter = new Reporter(logger, build.getProject().getSomeWorkspace(), build.getRootDir(), desc.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs);
+		Reporter reporter = new Reporter(logger, build.getProject().getSomeWorkspace(), build.getRootDir(), globalConfigDTO.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs);
 		reporter.publishResuts(aggregated, properties, localizedColumns, build.getRootDir());
 		// Add Build Action
 		build.addAction(new TestResultsAggregatorTestResultBuildAction(aggregated));
 		logger.println(LocalMessages.FINISHED_AGGREGATE.toString());
 		return true;
+	}
+	
+	private GlobalConfigDTO overrideGlobalConfigiguration(GlobalConfigDTO globalConfigDTO) {
+		if (!Strings.isNullOrEmpty(properties.getProperty(AggregatorProperties.OVERRIDE_JENKINS_BASEURL.name()))) {
+			globalConfigDTO.setJenkinsUrl(properties.getProperty(AggregatorProperties.OVERRIDE_JENKINS_BASEURL.name()));
+		}
+		if (!Strings.isNullOrEmpty(properties.getProperty(AggregatorProperties.OVERRIDE_API_ACCOUNT_USERNAME.name()))) {
+			globalConfigDTO.setUserName(properties.getProperty(AggregatorProperties.OVERRIDE_API_ACCOUNT_USERNAME.name()));
+		}
+		if (!Strings.isNullOrEmpty(properties.getProperty(AggregatorProperties.OVERRIDE_API_ACCOUNT_PASSWORD.name()))) {
+			globalConfigDTO.setPassword(properties.getProperty(AggregatorProperties.OVERRIDE_API_ACCOUNT_PASSWORD.name()));
+		}
+		if (!Strings.isNullOrEmpty(properties.getProperty(AggregatorProperties.OVERRIDE_MAIL_NOTIFICATION_FROM.name()))) {
+			globalConfigDTO.setMailNotificationFrom(properties.getProperty(AggregatorProperties.OVERRIDE_MAIL_NOTIFICATION_FROM.name()));
+		}
+		return globalConfigDTO;
 	}
 	
 	private boolean checkConfigChanges(Aggregated aggregatedSavedData) {
@@ -281,6 +319,11 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		properties.put(AggregatorProperties.INFLUXDB_TOKEN.name(), getInfluxdbToken() != null ? getInfluxdbToken() : "");
 		properties.put(AggregatorProperties.INFLUXDB_BUCKET.name(), getInfluxdbBucket() != null ? getInfluxdbBucket() : "");
 		properties.put(AggregatorProperties.INFLUXDB_ORG.name(), getInfluxdbOrg() != null ? getInfluxdbOrg() : "");
+		//
+		properties.put(AggregatorProperties.OVERRIDE_API_ACCOUNT_PASSWORD.name(), getOverrideAPIAccountPassword() != null ? getOverrideAPIAccountPassword() : "");
+		properties.put(AggregatorProperties.OVERRIDE_API_ACCOUNT_USERNAME.name(), getOverrideAPIAccountUsername() != null ? getOverrideAPIAccountUsername() : "");
+		properties.put(AggregatorProperties.OVERRIDE_JENKINS_BASEURL.name(), getOverrideJenkinsBaseURL() != null ? getOverrideJenkinsBaseURL() : "");
+		properties.put(AggregatorProperties.OVERRIDE_MAIL_NOTIFICATION_FROM.name(), getOverrideMailNotificationFrom() != null ? getOverrideMailNotificationFrom() : "");
 	}
 	
 	@Extension
@@ -663,6 +706,42 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 	@DataBoundSetter
 	public void setInfluxdbOrg(String influxdbOrg) {
 		this.influxdbOrg = influxdbOrg;
+	}
+	
+	public String getOverrideJenkinsBaseURL() {
+		return overrideJenkinsBaseURL;
+	}
+	
+	@DataBoundSetter
+	public void setOverrideJenkinsBaseURL(String overrideJenkinsBaseURL) {
+		this.overrideJenkinsBaseURL = overrideJenkinsBaseURL;
+	}
+	
+	public String getOverrideAPIAccountUsername() {
+		return overrideAPIAccountUsername;
+	}
+	
+	@DataBoundSetter
+	public void setOverrideAPIAccountUsername(String overrideAPIAccountUsername) {
+		this.overrideAPIAccountUsername = overrideAPIAccountUsername;
+	}
+	
+	public String getOverrideAPIAccountPassword() {
+		return overrideAPIAccountPassword;
+	}
+	
+	@DataBoundSetter
+	public void setOverrideAPIAccountPassword(String overrideAPIAccountPassword) {
+		this.overrideAPIAccountPassword = overrideAPIAccountPassword;
+	}
+	
+	public String getOverrideMailNotificationFrom() {
+		return overrideMailNotificationFrom;
+	}
+	
+	@DataBoundSetter
+	public void setOverrideMailNotificationFrom(String overrideMailNotificationFrom) {
+		this.overrideMailNotificationFrom = overrideMailNotificationFrom;
 	}
 	
 }
