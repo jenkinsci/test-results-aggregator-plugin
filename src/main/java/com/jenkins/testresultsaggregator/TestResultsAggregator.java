@@ -187,7 +187,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		boolean configChanges = checkConfigChanges(aggregatedSavedData);
 		// Collect Data
 		Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
-		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges);
+		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges, ignoreDisabledJobs);
 		collector.closeJenkinsConnection();
 		// Analyze Results
 		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious(), getIgnoreRunningJobs());
@@ -224,7 +224,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		boolean configChanges = checkConfigChanges(aggregatedSavedData);
 		// Collect Data
 		Collector collector = new Collector(jenkinsUrl, desc.getUsername(), desc.getPassword(), listener.getLogger(), validatedData);
-		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges);
+		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges, ignoreDisabledJobs);
 		collector.closeJenkinsConnection();
 		// Analyze Results
 		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious(), getIgnoreRunningJobs());

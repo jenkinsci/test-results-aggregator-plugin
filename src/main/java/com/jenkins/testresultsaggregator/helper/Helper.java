@@ -422,35 +422,35 @@ public class Helper {
 		String statusAdvanced;
 		switch (status) {
 			case ABORTED:
-				calc(new Results(), JobStatus.ABORTED.name(), job);
+				calc(null, JobStatus.ABORTED.name(), job);
 				break;
 			case SUCCESS:
 				if (job.getPrevious() == null) {
-					calc(new Results(), JobStatus.SUCCESS.name(), job);
+					calc(null, JobStatus.SUCCESS.name(), job);
 				} else {
 					statusAdvanced = calculateAdvancedStatusDecideLastResults(job, ignoreRunningJobs);
-					calc(new Results(), statusAdvanced, job);
+					calc(null, statusAdvanced, job);
 				}
 				break;
 			case FAILURE:
 				if (job.getPrevious() == null) {
-					calc(new Results(), JobStatus.FAILURE.name(), job);
+					calc(null, JobStatus.FAILURE.name(), job);
 				} else {
 					statusAdvanced = calculateAdvancedStatusDecideLastResults(job, ignoreRunningJobs);
-					calc(new Results(), statusAdvanced, job);
+					calc(null, statusAdvanced, job);
 				}
 				break;
 			case UNSTABLE:
 				if (job.getPrevious() == null) {
-					calc(new Results(), JobStatus.UNSTABLE.name(), job);
+					calc(null, JobStatus.UNSTABLE.name(), job);
 				} else {
 					statusAdvanced = calculateAdvancedStatusDecideLastResults(job, ignoreRunningJobs);
-					calc(new Results(), statusAdvanced, job);
+					calc(null, statusAdvanced, job);
 				}
 				break;
 			case BUILDING:
 				if (job.getResults() == null) {
-					calc(new Results(), JobStatus.RUNNING.name(), job);
+					calc(null, JobStatus.RUNNING.name(), job);
 				} else {
 					statusAdvanced = calculateAdvancedStatusDecideLastResults(job, ignoreRunningJobs);
 					calc(job.getResults(), statusAdvanced, job);
@@ -485,12 +485,16 @@ public class Helper {
 	}
 	
 	private void calc(Results results, String statusAdvanced, Job job) {
+		if (results == null) {
+			results = new Results();
+		}
 		if (statusAdvanced.equalsIgnoreCase(JobStatus.RUNNING_REPORT_PREVIOUS.name())) {
 			results.setStatusAdvanced(job.getResults().getStatus() + "*");
 		} else {
 			results.setStatusAdvanced(statusAdvanced);
 		}
 		if (!statusAdvanced.equalsIgnoreCase(JobStatus.RUNNING_REPORT_PREVIOUS.name())) {
+			job.setResults(results);
 			results.setStatus(job.getLast().getResults().getStatus());
 			results.setNumber(job.getLast().getResults().getNumber());
 			results.setDuration(job.getLast().getResults().getDuration());

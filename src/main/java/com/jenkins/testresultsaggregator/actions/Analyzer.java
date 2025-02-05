@@ -71,7 +71,7 @@ public class Analyzer {
 						JobStatus.NO_LAST_BUILD_DATA.name().equalsIgnoreCase(job.getResults().getStatus()))) {
 					// Do nothing
 				} else {
-					if (job.getLast().getResults() != null) {
+					if (job.getLast() != null && job.getLast().getResults() != null) {
 						if (job.getResults() != null && job.getLast().getBuildNumber() == job.getResults().getNumber() && !job.getIsBuilding()) {
 							// Already have results and requested the same results
 							calculateReport(job, outOfDateResults, ignoreRunning);
@@ -219,7 +219,7 @@ public class Analyzer {
 	}
 	
 	private void calculateReport(Job job, String outOfDateResults, boolean ignoreRunningJobs) {
-		if (!job.getIsBuilding() || ignoreRunningJobs) {
+		if ((!job.getIsBuilding() || ignoreRunningJobs) && job.getResults() != null) {
 			// Calculate Total
 			job.getResults().calculateTotal(job);
 			// Calculate Pass

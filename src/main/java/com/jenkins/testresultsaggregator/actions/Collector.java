@@ -230,7 +230,7 @@ public class Collector {
 		return response;
 	}
 	
-	public void collectResults(List<Data> dataJob, boolean compareWithPreviousRun, Boolean ignoreRunningJobs, boolean configChanges) throws InterruptedException {
+	public void collectResults(List<Data> dataJob, boolean compareWithPreviousRun, Boolean ignoreRunningJobs, boolean configChanges, boolean ignoreDisabledJobs) throws InterruptedException {
 		logger.println("Collect data");
 		List<Job> allDataJobDTO = new ArrayList<>();
 		for (Data temp : dataJob) {
@@ -241,7 +241,7 @@ public class Collector {
 		ReportThread[] threads = new ReportThread[allDataJobDTO.size()];
 		int index = 0;
 		for (Job tempDataJobDTO : allDataJobDTO) {
-			threads[index] = new ReportThread(tempDataJobDTO, compareWithPreviousRun, ignoreRunningJobs, configChanges);
+			threads[index] = new ReportThread(tempDataJobDTO, compareWithPreviousRun, ignoreRunningJobs, configChanges, ignoreDisabledJobs);
 			index++;
 		}
 		index = 0;
@@ -264,12 +264,14 @@ public class Collector {
 		boolean compareWithPreviousRun;
 		boolean ignoreRunningJobs;
 		boolean configChanges;
+		boolean ignoreDisabled;
 		
-		public ReportThread(Job job, boolean compareWithPreviousRun, boolean ignoreRunningJobs, boolean configChanges) {
+		public ReportThread(Job job, boolean compareWithPreviousRun, boolean ignoreRunningJobs, boolean configChanges, boolean ignoreDisabled) {
 			this.job = job;
 			this.compareWithPreviousRun = compareWithPreviousRun;
 			this.ignoreRunningJobs = ignoreRunningJobs;
 			this.configChanges = configChanges;
+			this.ignoreDisabled = ignoreDisabled;
 		}
 		
 		@Override
@@ -284,11 +286,13 @@ public class Collector {
 						job.setResults(new Results(JobStatus.NOT_FOUND.name(), job.getUrl()));
 					} else if (!job.getJob().isBuildable()) {
 						text.append("Job '" + job.getJobName() + "' found " + JobStatus.DISABLED.name());
-						job.setLast(new BuildWithDetailsAggregator());
-						job.setLast(getLastBuildDetails(job));
-						job.getLast().setResults(calculateResults(job.getLast()));
-						job.getLast().getResults().setStatus(JobStatus.DISABLED.name());
-						job.setResults(new Results(JobStatus.DISABLED.name(), job.getUrl()));
+						if (!ignoreDisabled) {
+							job.setLast(new BuildWithDetailsAggregator());
+							job.setLast(getLastBuildDetails(job));
+							job.getLast().setResults(calculateResults(job.getLast()));
+							job.getLast().getResults().setStatus(JobStatus.DISABLED.name());
+							job.setResults(new Results(JobStatus.DISABLED.name(), job.getUrl()));
+						}
 					} else if (job.getJob().isBuildable() && !job.getJob().hasLastBuildRun()) {
 						text.append("Job '" + job.getJobName() + "' found " + JobStatus.NO_LAST_BUILD_DATA.name());
 						job.setResults(new Results(JobStatus.NO_LAST_BUILD_DATA.name(), job.getUrl()));
