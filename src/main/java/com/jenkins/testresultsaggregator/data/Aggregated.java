@@ -199,9 +199,9 @@ public class Aggregated extends BaseResult {
 	
 	public String calculatePercentageOfJobs(boolean withColor, int fontSize, String status) {
 		if (withColor) {
-			return Helper.colorizePercentage(Helper.countPercentageD(successJobs + fixedJobs + unstableJobs + keepUnstableJobs, getTotalJobs()), fontSize, status);
+			return Helper.colorizePercentage(Helper.countPercentageD(successJobs + fixedJobs, getTotalJobs()), fontSize, status);
 		}
-		return Helper.countPercentageD(successJobs + fixedJobs + unstableJobs + keepUnstableJobs, getTotalJobs()).toString();
+		return Helper.countPercentageD(successJobs + fixedJobs, getTotalJobs()).toString();
 	}
 	
 	public String calculateTotalDuration() {
@@ -309,35 +309,35 @@ public class Aggregated extends BaseResult {
 		}
 		return Helper.reportTestDiffs(null, Colors.FAILED, results.getFail(), dif);
 	}
-
+	
 	public Boolean getIgnoreDisabledJobs() {
 		return ignoreDisabledJobs;
 	}
-
+	
 	public void setIgnoreDisabledJobs(Boolean ignoreDisabledJobs) {
 		this.ignoreDisabledJobs = ignoreDisabledJobs;
 	}
-
+	
 	public Boolean getIgnoreNotFoundJobs() {
 		return ignoreNotFoundJobs;
 	}
-
+	
 	public void setIgnoreNotFoundJobs(Boolean ignoreNotFoundJobs) {
 		this.ignoreNotFoundJobs = ignoreNotFoundJobs;
 	}
-
+	
 	public Boolean getIgnoreRunningJobs() {
 		return ignoreRunningJobs;
 	}
-
+	
 	public void setIgnoreRunningJobs(Boolean ignoreRunningJobs) {
 		this.ignoreRunningJobs = ignoreRunningJobs;
 	}
-
+	
 	public Boolean getCompareWithPreviousRun() {
 		return compareWithPreviousRun;
 	}
-
+	
 	public void setCompareWithPreviousRun(Boolean compareWithPreviousRun) {
 		this.compareWithPreviousRun = compareWithPreviousRun;
 	}
