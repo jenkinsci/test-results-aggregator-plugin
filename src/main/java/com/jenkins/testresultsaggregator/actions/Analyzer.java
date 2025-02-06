@@ -132,10 +132,10 @@ public class Analyzer {
 							}
 						}
 						// Calculate Total Tests Per Group
-						resultsPerGroup.setPass(resultsPerGroup.getPass() + job.getLast().getResults().getPass());
-						resultsPerGroup.setSkip(resultsPerGroup.getSkip() + job.getLast().getResults().getSkip());
-						resultsPerGroup.setFail(resultsPerGroup.getFail() + job.getLast().getResults().getFail());
-						resultsPerGroup.setTotal(resultsPerGroup.getTotal() + job.getLast().getResults().getTotal());
+						resultsPerGroup.setPass(resultsPerGroup.getPass() + job.getResults().getPass());
+						resultsPerGroup.setSkip(resultsPerGroup.getSkip() + job.getResults().getSkip());
+						resultsPerGroup.setFail(resultsPerGroup.getFail() + job.getResults().getFail());
+						resultsPerGroup.setTotal(resultsPerGroup.getTotal() + job.getResults().getTotal());
 						// Calculate Total Tests for Summary Column , exclude RUNNING when ignore running is false
 						if (!job.getIsBuilding() && (!ignoreRunning || !compareWithPrevious)) {
 							totalResults.addResults(job.getResults());
@@ -168,8 +168,7 @@ public class Analyzer {
 				data.getReportGroup().setPercentageForJobs(Helper.countPercentage(jobSuccess + jobUnstable, jobSuccess + jobRunning + jobAborted + jobUnstable + jobFailed));
 			}
 			// Calculate Percentage Per Group based on Tests
-			// Skip tests are calculated as success into test percentage
-			data.getReportGroup().setPercentageForTests(Helper.countPercentageD(resultsPerGroup.getPass() + resultsPerGroup.getSkip(),
+			data.getReportGroup().setPercentageForTests(Helper.countPercentageD(resultsPerGroup.getPass(),
 					resultsPerGroup.getPass() + resultsPerGroup.getFail() + resultsPerGroup.getSkip()).toString());
 		}
 		// Order Jobs per

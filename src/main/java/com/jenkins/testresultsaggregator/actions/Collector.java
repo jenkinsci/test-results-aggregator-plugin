@@ -421,7 +421,6 @@ public class Collector {
 	}
 	
 	private void handleRunning(StringBuilder text, Job job) throws Exception {
-		//
 		job.setPrevious(null);
 		if (job.getResults() == null) { // Not found previously saved results
 			text.append(", previous build #" + null);

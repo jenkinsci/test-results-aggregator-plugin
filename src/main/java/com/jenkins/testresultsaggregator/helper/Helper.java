@@ -495,7 +495,7 @@ public class Helper {
 		}
 		if (!statusAdvanced.equalsIgnoreCase(JobStatus.RUNNING_REPORT_PREVIOUS.name())) {
 			job.setResults(results);
-			results.setStatus(job.getLast().getResults().getStatus());
+			// results.setStatus(job.getLast().getResults().getStatus());
 			results.setNumber(job.getLast().getResults().getNumber());
 			results.setDuration(job.getLast().getResults().getDuration());
 			results.setDescription(job.getLast().getResults().getDescription());
