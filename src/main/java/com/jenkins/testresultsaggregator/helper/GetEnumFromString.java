@@ -2,7 +2,7 @@ package com.jenkins.testresultsaggregator.helper;
 
 public class GetEnumFromString {
 	
-	private GetEnumFromString() {
+	public GetEnumFromString() {
 		
 	}
 	
