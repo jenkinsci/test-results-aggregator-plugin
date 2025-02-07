@@ -426,33 +426,37 @@ public class Helper {
 				break;
 			case SUCCESS:
 				if (job.getPrevious() == null) {
-					calc(null, JobStatus.SUCCESS.name(), job);
+					statusAdvanced = calculateAdvancedStatusLastAndSavedResults(job, ignoreRunningJobs);
+					calc(null, statusAdvanced, job);
 				} else {
-					statusAdvanced = calculateAdvancedStatusDecideLastResults(job, ignoreRunningJobs);
+					statusAdvanced = calculateAdvancedStatusLastAndPrevious(job, ignoreRunningJobs);
 					calc(null, statusAdvanced, job);
 				}
 				break;
 			case FAILURE:
 				if (job.getPrevious() == null) {
-					calc(null, JobStatus.FAILURE.name(), job);
+					statusAdvanced = calculateAdvancedStatusLastAndSavedResults(job, ignoreRunningJobs);
+					calc(null, statusAdvanced, job);
 				} else {
-					statusAdvanced = calculateAdvancedStatusDecideLastResults(job, ignoreRunningJobs);
+					statusAdvanced = calculateAdvancedStatusLastAndPrevious(job, ignoreRunningJobs);
 					calc(null, statusAdvanced, job);
 				}
 				break;
 			case UNSTABLE:
 				if (job.getPrevious() == null) {
-					calc(null, JobStatus.UNSTABLE.name(), job);
+					statusAdvanced = calculateAdvancedStatusLastAndSavedResults(job, ignoreRunningJobs);
+					calc(null, statusAdvanced, job);
 				} else {
-					statusAdvanced = calculateAdvancedStatusDecideLastResults(job, ignoreRunningJobs);
+					statusAdvanced = calculateAdvancedStatusLastAndPrevious(job, ignoreRunningJobs);
 					calc(null, statusAdvanced, job);
 				}
 				break;
 			case RUNNING:
 				if (job.getResults() == null) {
+					// statusAdvanced = calculateAdvancedStatusLastAndSavedResults(job, ignoreRunningJobs);
 					calc(null, JobStatus.RUNNING.name(), job);
 				} else {
-					statusAdvanced = calculateAdvancedStatusDecideLastResults(job, ignoreRunningJobs);
+					statusAdvanced = calculateAdvancedStatusLastAndPrevious(job, ignoreRunningJobs);
 					calc(job.getResults(), statusAdvanced, job);
 				}
 				break;
@@ -461,12 +465,27 @@ public class Helper {
 		}
 	}
 	
-	private String calculateAdvancedStatusDecideLastResults(Job job, boolean ignoreRunningJobs) {
+	private String calculateAdvancedStatusLastAndPrevious(Job job, boolean ignoreRunningJobs) {
 		if (BuildResult.SUCCESS.equals(job.getLast().getResult()) && job.getPrevious() != null && !BuildResult.SUCCESS.equals(job.getPrevious().getResult()) && !job.getLast().isBuilding()) {
 			return JobStatus.FIXED.name();
-		} else if (BuildResult.FAILURE.equals(job.getLast().getResult()) && job.getPrevious() != null && BuildResult.FAILURE.equals(job.getPrevious().getResult())) {
+		} else if (BuildResult.FAILURE.equals(job.getLast().getResult()) && job.getPrevious() != null && BuildResult.FAILURE.equals(job.getPrevious().getResult()) && !job.getLast().isBuilding()) {
 			return JobStatus.STILL_FAILING.name();
-		} else if (BuildResult.UNSTABLE.equals(job.getLast().getResult()) && job.getPrevious() != null && BuildResult.UNSTABLE.equals(job.getPrevious().getResult())) {
+		} else if (BuildResult.UNSTABLE.equals(job.getLast().getResult()) && job.getPrevious() != null && BuildResult.UNSTABLE.equals(job.getPrevious().getResult()) && !job.getLast().isBuilding()) {
+			return JobStatus.STILL_UNSTABLE.name();
+		} else if (job.getLast().isBuilding() && ignoreRunningJobs) {
+			return JobStatus.RUNNING_REPORT_PREVIOUS.name();
+		} else if (job.getLast().isBuilding() && !ignoreRunningJobs) {
+			return JobStatus.RUNNING.name();
+		}
+		return job.getLast().getResult().name();
+	}
+	
+	private String calculateAdvancedStatusLastAndSavedResults(Job job, boolean ignoreRunningJobs) {
+		if (BuildResult.SUCCESS.equals(job.getLast().getResult()) && job.getResults() != null && !BuildResult.SUCCESS.name().equalsIgnoreCase(job.getResults().getStatus().name()) && !job.getLast().isBuilding()) {
+			return JobStatus.FIXED.name();
+		} else if (BuildResult.FAILURE.equals(job.getLast().getResult()) && job.getResults() != null && BuildResult.FAILURE.name().equalsIgnoreCase(job.getResults().getStatus().name()) && !job.getLast().isBuilding()) {
+			return JobStatus.STILL_FAILING.name();
+		} else if (BuildResult.UNSTABLE.equals(job.getLast().getResult()) && job.getResults() != null && BuildResult.UNSTABLE.name().equalsIgnoreCase(job.getResults().getStatus().name()) && !job.getLast().isBuilding()) {
 			return JobStatus.STILL_UNSTABLE.name();
 		} else if (job.getLast().isBuilding() && ignoreRunningJobs) {
 			return JobStatus.RUNNING_REPORT_PREVIOUS.name();

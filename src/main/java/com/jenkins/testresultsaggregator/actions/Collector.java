@@ -347,6 +347,7 @@ public class Collector {
 			if (previousBuildNumber > 0 && !configChanges) {
 				text.append(", previous saved build #" + previousBuildNumber);
 				text.append(" with status " + job.getResults().getStatusAdvanced());
+				
 			} else {
 				getNewPrevious(text, job);
 			}
