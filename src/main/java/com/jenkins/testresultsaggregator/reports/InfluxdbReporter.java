@@ -57,7 +57,7 @@ public class InfluxdbReporter {
 								.addTag("Fail", Integer.toString(job.getResults().getFail()))
 								.addTag("Skip", Integer.toString(job.getResults().getSkip()))
 								.addTag("Duration", Long.toString(job.getResults().getDuration()))
-								.addTag("ReportTimr", timeNow.toString())
+								.addTag("Last_Update", timeNow.toString())
 								.addField("Result", job.getResults().getStatusAdvanced());
 						send(pointJenkinsJob, bucket, org, errorPosting);
 					} else {
