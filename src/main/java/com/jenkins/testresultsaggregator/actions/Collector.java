@@ -342,7 +342,7 @@ public class Collector {
 	}
 	
 	private void getPrevious(StringBuilder text, Job job, boolean configChanges) throws Exception {
-		if (job.getResults() != null) {
+		if (job.getResults() != null && !JobStatus.RUNNING.equals(job.getResults().getStatus())) {
 			int previousBuildNumber = job.getResults().getNumber();
 			if (previousBuildNumber > 0 && !configChanges) {
 				text.append(", previous saved build #" + previousBuildNumber);
