@@ -601,7 +601,7 @@ public class Results implements Serializable {
 	}
 	
 	public void calculatePercentage(Job job) {
-		String jobStatus = job.getResults().getStatusAdvanced();
+		String jobStatus = job.getResults().getStatus().name();
 		if (Strings.isNullOrEmpty(jobStatus)) {
 			jobStatus = job.getResults().getStatus().name();
 		}
