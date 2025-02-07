@@ -14,6 +14,7 @@ import com.jenkins.testresultsaggregator.TestResultsAggregatorProjectAction;
 import com.jenkins.testresultsaggregator.data.Aggregated;
 import com.jenkins.testresultsaggregator.data.Data;
 import com.jenkins.testresultsaggregator.data.Job;
+import com.jenkins.testresultsaggregator.data.JobStatus;
 import com.jenkins.testresultsaggregator.data.JobWithDetailsAggregator;
 import com.jenkins.testresultsaggregator.data.Results;
 import com.jenkins.testresultsaggregator.reports.XMLReporter;
@@ -127,6 +128,8 @@ public class ResultsParser {
 							finalResults.setUnstableJobs(getInteger(currentNodeResults));
 						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.JOB_UNSTABLE_KEEP)) {
 							finalResults.setKeepUnstableJobs(getInteger(currentNodeResults));
+						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.JOB_DISABLED)) {
+							finalResults.setDisabledJobs(getInteger(currentNodeResults));
 						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_TOTAL)) {
 							finalResults.getResults().setTotal(getInteger(currentNodeResults));
 						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.TEST_TOTAL_DIF)) {
@@ -206,11 +209,13 @@ public class ResultsParser {
 							if (nodeItem.getNodeName().equalsIgnoreCase(XMLReporter.NAME)) {
 								dataJob.setJobName(getString(nodeItem));
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(XMLReporter.STATUS)) {
-								dataJob.getResults().setStatus(getString(nodeItem));
+								dataJob.getResults().setStatus(JobStatus.getFromString(getString(nodeItem)));
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(XMLReporter.STATUS_ADV)) {
 								dataJob.getResults().setStatusAdvanced(getString(nodeItem));
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(XMLReporter.DURATION)) {
 								dataJob.getResults().setDuration(getLong(nodeItem));
+							} else if (nodeItem.getNodeName().equalsIgnoreCase(XMLReporter.IS_RUNNING)) {
+								dataJob.getResults().setBuilding(getBoolean(nodeItem));
 							} else if (nodeItem.getNodeName().equalsIgnoreCase(XMLReporter.BUILD)) {
 								try {
 									dataJob.getResults().setNumber(Integer.parseInt(getString(nodeItem)));

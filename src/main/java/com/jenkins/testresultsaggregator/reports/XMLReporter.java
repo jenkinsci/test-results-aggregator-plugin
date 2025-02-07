@@ -34,6 +34,7 @@ public class XMLReporter {
 	public static final String DURATION = "DURATION";
 	public static final String URL = "URL";
 	public static final String BUILD = "BUILD";
+	public static final String IS_RUNNING = "IS_RUNNING";
 	
 	public XMLReporter(PrintStream logger, File rootDir) {
 		this.logger = logger;
@@ -64,6 +65,7 @@ public class XMLReporter {
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.JOB_RUNNING, aggregated.getRunningJobs()));
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.JOB_UNSTABLE, aggregated.getUnstableJobs()));
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.JOB_UNSTABLE_KEEP, aggregated.getKeepUnstableJobs()));
+			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.JOB_DISABLED, aggregated.getDisabledJobs()));
 			
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_TOTAL, aggregated.getResults().getTotal()));
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.TEST_TOTAL_DIF, aggregated.getResults().getTotalDif()));
@@ -85,11 +87,12 @@ public class XMLReporter {
 							writer.println(TAB + TAB + TAB + xmlTag(STATUS, dataJob.getResults().getStatus()));
 							writer.println(TAB + TAB + TAB + xmlTag(STATUS_ADV, dataJob.getResults().getStatusAdvanced()));
 							writer.println(TAB + TAB + TAB + xmlTag(DURATION, dataJob.getResults().getDuration()));
-							if (JobStatus.DISABLED.name().equalsIgnoreCase(dataJob.getResults().getStatus())) {
+							writer.println(TAB + TAB + TAB + xmlTag(IS_RUNNING, dataJob.getResults().isBuilding()));
+							if (JobStatus.DISABLED == dataJob.getResults().getStatus()) {
 								jobStatus(writer, dataJob, dataJob.getUrl(), null, false);
-							} else if (JobStatus.NOT_FOUND.name().equalsIgnoreCase(dataJob.getResults().getStatus())) {
+							} else if (JobStatus.NOT_FOUND == dataJob.getResults().getStatus()) {
 								jobStatus(writer, dataJob, null, null, false);
-							} else if (JobStatus.NO_LAST_BUILD_DATA.name().equalsIgnoreCase(dataJob.getResults().getStatus())) {
+							} else if (JobStatus.NO_LAST_BUILD_DATA == dataJob.getResults().getStatus()) {
 								jobStatus(writer, dataJob, null, null, false);
 							} else {
 								jobStatus(writer, dataJob, dataJob.getUrl(), dataJob.getResults().getNumber(), true);

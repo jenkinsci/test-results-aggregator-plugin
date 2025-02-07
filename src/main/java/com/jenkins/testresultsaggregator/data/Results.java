@@ -11,7 +11,7 @@ public class Results implements Serializable {
 	
 	private static final long serialVersionUID = 3491974223667L;
 	
-	private String status;
+	private JobStatus status;
 	private String statusAdvanced;
 	private int number;
 	private String durationReport;
@@ -21,7 +21,6 @@ public class Results implements Serializable {
 	private String url;
 	private String sonarUrl;
 	private String timestamp;
-	
 	private String percentageReport;
 	private Double percentage;
 	// Changes
@@ -64,7 +63,7 @@ public class Results implements Serializable {
 	public Results() {
 	}
 	
-	public Results(String status, String url) {
+	public Results(JobStatus status, String url) {
 		setStatus(status);
 		setUrl(url);
 	}
@@ -219,7 +218,7 @@ public class Results implements Serializable {
 		this.percentage = percentage;
 	}
 	
-	public String getStatus() {
+	public JobStatus getStatus() {
 		return status;
 	}
 	
@@ -227,23 +226,23 @@ public class Results implements Serializable {
 		if (!Strings.isNullOrEmpty(statusAdvanced)) {
 			return fixStatusName(Helper.colorizeResultStatus(statusAdvanced));
 		}
-		return fixStatusName(Helper.colorizeResultStatus(status));
+		return fixStatusName(Helper.colorizeResultStatus(status.name()));
 	}
 	
 	public String getStatusColor(boolean withLinktoResults) {
 		if (withLinktoResults) {
 			if (getUrl() != null) {
-				return "<a href='" + getUrl() + "' style='text-decoration:none;'>" + fixStatusName(Helper.colorizeResultStatus(status)) + "</a>";
+				return "<a href='" + getUrl() + "' style='text-decoration:none;'>" + fixStatusName(Helper.colorizeResultStatus(status.name())) + "</a>";
 			}
 		}
 		return getStatusColor();
 	}
 	
 	public String getStatusPlain() {
-		if (getStatus() != null && getStatus().contains("*")) {
-			return getStatus().replace("*", "");
+		if (getStatus() != null && getStatus().name().contains("*")) {
+			return getStatus().name().replace("*", "");
 		}
-		return getStatus();
+		return getStatus().name();
 	}
 	
 	public String getCalculatedCcPackage() {
@@ -411,7 +410,7 @@ public class Results implements Serializable {
 	
 	public void calculateTotal(Job job) {
 		if (job.getResults() != null) {
-			setTotalReport(Helper.reportTestDiffs(status, null, job.getResults().getTotal(), job.getResults().getTotalDif()));
+			setTotalReport(Helper.reportTestDiffs(status.name(), null, job.getResults().getTotal(), job.getResults().getTotalDif()));
 		} else {
 			setTotalReport("0");
 		}
@@ -419,7 +418,7 @@ public class Results implements Serializable {
 	
 	public void calculatePass(Job job) {
 		if (job != null) {
-			setPassReport(Helper.reportTestDiffs(status, null, job.getResults().getPass(), job.getResults().getPassDif()));
+			setPassReport(Helper.reportTestDiffs(status.name(), null, job.getResults().getPass(), job.getResults().getPassDif()));
 		} else {
 			setPassReport("0");
 		}
@@ -427,7 +426,7 @@ public class Results implements Serializable {
 	
 	public void calculateFailed(Job job) {
 		if (job != null) {
-			setFailReport(Helper.reportTestDiffs(status, Color.RED, job.getResults().getFail(), job.getResults().getFailDif()));
+			setFailReport(Helper.reportTestDiffs(status.name(), Color.RED, job.getResults().getFail(), job.getResults().getFailDif()));
 		} else {
 			setFailReport("0");
 		}
@@ -435,7 +434,7 @@ public class Results implements Serializable {
 	
 	public void calculateSkipped(Job job) {
 		if (job != null) {
-			setSkipReport(Helper.reportTestDiffs(status, null, job.getResults().getSkip(), job.getResults().getSkipDif()));
+			setSkipReport(Helper.reportTestDiffs(status.name(), null, job.getResults().getSkip(), job.getResults().getSkipDif()));
 		} else {
 			setSkipReport("0");
 		}
@@ -589,7 +588,7 @@ public class Results implements Serializable {
 		this.numberOfChangesReport = numberOfChangesReport;
 	}
 	
-	public void setStatus(String status) {
+	public void setStatus(JobStatus status) {
 		this.status = status;
 	}
 	
@@ -604,7 +603,7 @@ public class Results implements Serializable {
 	public void calculatePercentage(Job job) {
 		String jobStatus = job.getResults().getStatusAdvanced();
 		if (Strings.isNullOrEmpty(jobStatus)) {
-			jobStatus = job.getResults().getStatus();
+			jobStatus = job.getResults().getStatus().name();
 		}
 		if (JobStatus.ABORTED.name().equalsIgnoreCase(jobStatus) ||
 				JobStatus.DISABLED.name().equalsIgnoreCase(jobStatus) ||
@@ -640,7 +639,7 @@ public class Results implements Serializable {
 		if (!Strings.isNullOrEmpty(statusAdvanced)) {
 			return statusAdvanced;
 		}
-		return status;
+		return status.name();
 	}
 	
 	public void setStatusAdvanced(String statusAdvanced) {
@@ -658,4 +657,5 @@ public class Results implements Serializable {
 		this.setSkipDif(this.getSkipDif() + resultsDTO.getSkipDif());
 		return this;
 	}
+	
 }
