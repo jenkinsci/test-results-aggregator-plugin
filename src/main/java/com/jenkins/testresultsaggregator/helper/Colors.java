@@ -7,6 +7,7 @@ public class Colors {
 	public static final Color BLACK = Color.BLACK;
 	public static final Color SUCCESS = new Color(8, 150, 8);// Color.GREEN;
 	public static final Color ABORTED = new Color(115, 115, 115);// Color.DARK_GRAY;
+	public static final Color DISABLED = new Color(115, 115, 115);// Color.DARK_GRAY;
 	public static final Color FAILED = new Color(245, 15, 25);// Color.RED;
 	public static final Color RUNNING = new Color(0, 25, 235);// Color.BLUE;
 	public static final Color UNSTABLE = new Color(255, 205, 10); // Color.ORANGE;
@@ -40,6 +41,10 @@ public class Colors {
 	
 	public static String htmlABORTED() {
 		return getHTMLColorString(ABORTED);
+	}
+	
+	public static String htmlDISABLED() {
+		return getHTMLColorString(DISABLED);
 	}
 	
 	public static String htmlFAILED() {
