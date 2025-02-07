@@ -34,15 +34,16 @@ public class InfluxdbReporter {
 		if (!Strings.isNullOrEmpty(url) && !Strings.isNullOrEmpty(token) && !Strings.isNullOrEmpty(bucket) && !Strings.isNullOrEmpty(org)) {
 			logger.println(LocalMessages.POST.toString() + " " + LocalMessages.INFLUXDB.toString());
 			createClient(url, token);
+			Instant timeNow = Instant.now();
 			//
 			for (Data data : aggregated.getData()) {
 				for (Job job : data.getJobs()) {
 					// Post Data per Job
 					if (job.getLast() != null) {
 						Instant time = Instant.ofEpochMilli(job.getLast().getTimestamp());
-						if (job.getResults() != null && job.getResults().getStatus() != null && !job.getResults().getStatus().name().equalsIgnoreCase(job.getResults().getStatusAdvanced()) || configurationChanges) {
+						/*if (job.getResults() != null && job.getResults().getStatus() != null && !job.getResults().getStatus().name().equalsIgnoreCase(job.getResults().getStatusAdvanced()) || configurationChanges) {
 							time = time.plusMillis(1000);// Add one sec for previously changes into calculated Advanced status in order to update the status in Grafana
-						}
+						}*/
 						Point pointJenkinsJob = Point.measurement(job.getJobName() + "#" + job.getLast().getBuildNumber())
 								.time(time, WritePrecision.S)
 								.addTag("Jenkins Job Name", job.getJobName())
@@ -56,6 +57,7 @@ public class InfluxdbReporter {
 								.addTag("Fail", Integer.toString(job.getResults().getFail()))
 								.addTag("Skip", Integer.toString(job.getResults().getSkip()))
 								.addTag("Duration", Long.toString(job.getResults().getDuration()))
+								.addTag("ReportTimr", timeNow.toString())
 								.addField("Result", job.getResults().getStatusAdvanced());
 						send(pointJenkinsJob, bucket, org, errorPosting);
 					} else {
@@ -69,10 +71,10 @@ public class InfluxdbReporter {
 			}*/
 			
 			// Post last update date time
-			Instant time = Instant.now();
+			
 			Point pointJenkinsJob = Point.measurement("TestResultsAggregator")
-					.time(time, WritePrecision.S)
-					.addField("Last_Update", time.toString());
+					.time(timeNow, WritePrecision.S)
+					.addField("Last_Update", timeNow.toString());
 			send(pointJenkinsJob, bucket, org, errorPosting);
 			logger.println(LocalMessages.FINISHED.toString() + " " + LocalMessages.INFLUXDB.toString());
 		}
