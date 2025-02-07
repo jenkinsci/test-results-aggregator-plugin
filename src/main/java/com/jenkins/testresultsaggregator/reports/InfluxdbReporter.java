@@ -36,7 +36,6 @@ public class InfluxdbReporter {
 			createClient(url, token);
 			//
 			for (Data data : aggregated.getData()) {
-				// TODO : Post Groups
 				for (Job job : data.getJobs()) {
 					// Post Data per Job
 					if (job.getLast() != null) {
