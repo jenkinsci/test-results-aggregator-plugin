@@ -30,7 +30,7 @@ public class InfluxdbReporter {
 		this.logger = logger;
 	}
 	
-	public void post(Aggregated aggregated, String url, String token, String bucket, String org) throws IOException, InterruptedException {
+	public void post(Aggregated aggregated, String url, String token, String bucket, String org, boolean configurationChanges) throws IOException, InterruptedException {
 		if (!Strings.isNullOrEmpty(url) && !Strings.isNullOrEmpty(token) && !Strings.isNullOrEmpty(bucket) && !Strings.isNullOrEmpty(org)) {
 			logger.println(LocalMessages.POST.toString() + " " + LocalMessages.INFLUXDB.toString());
 			createClient(url, token);
@@ -41,7 +41,7 @@ public class InfluxdbReporter {
 					// Post Data per Job
 					if (job.getLast() != null) {
 						Instant time = Instant.ofEpochMilli(job.getLast().getTimestamp());
-						if (job.getResults() != null && job.getResults().getStatus() != null && !job.getResults().getStatus().name().equalsIgnoreCase(job.getResults().getStatusAdvanced())) {
+						if (job.getResults() != null && job.getResults().getStatus() != null && !job.getResults().getStatus().name().equalsIgnoreCase(job.getResults().getStatusAdvanced()) || configurationChanges) {
 							time = time.plusMillis(1000);// Add one sec for previously changes into calculated Advanced status in order to update the status in Grafana
 						}
 						Point pointJenkinsJob = Point.measurement(job.getJobName() + "#" + job.getLast().getBuildNumber())

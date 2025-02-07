@@ -41,10 +41,11 @@ public class Reporter {
 	private Boolean ignoreDisabledJobs;
 	private Boolean ignoreAbortedJobs;
 	private boolean foundAtLeastOneGroupName;
+	private boolean configurationChanges;
 	
 	private Set<Job> ignoredDataJobs = new HashSet<>();
 	
-	public Reporter(PrintStream logger, FilePath workspace, File rootDir, String mailNotificationFrom, Boolean ignoreDisabledJobs, Boolean ignoreNotFoundJobs, Boolean ignoreAbortedJobs) {
+	public Reporter(PrintStream logger, FilePath workspace, File rootDir, String mailNotificationFrom, Boolean ignoreDisabledJobs, Boolean ignoreNotFoundJobs, Boolean ignoreAbortedJobs, boolean configurationChanges) {
 		this.logger = logger;
 		this.workspace = workspace;
 		this.rootDir = rootDir;
@@ -52,6 +53,7 @@ public class Reporter {
 		this.ignoreDisabledJobs = ignoreDisabledJobs;
 		this.ignoreNotFoundJobs = ignoreNotFoundJobs;
 		this.ignoreAbortedJobs = ignoreAbortedJobs;
+		this.configurationChanges = configurationChanges;
 	}
 	
 	public void publishResuts(Aggregated aggregated, Properties properties, List<LocalMessages> columns, File rootDirectory) throws IOException, InterruptedException {
@@ -116,7 +118,7 @@ public class Reporter {
 				properties.getProperty(AggregatorProperties.INFLUXDB_URL.name()),
 				properties.getProperty(AggregatorProperties.INFLUXDB_TOKEN.name()),
 				properties.getProperty(AggregatorProperties.INFLUXDB_BUCKET.name()),
-				properties.getProperty(AggregatorProperties.INFLUXDB_ORG.name()));
+				properties.getProperty(AggregatorProperties.INFLUXDB_ORG.name()), configurationChanges);
 	}
 	
 	private void ignoreJobsFromReport(List<Data> list, JobStatus status) {

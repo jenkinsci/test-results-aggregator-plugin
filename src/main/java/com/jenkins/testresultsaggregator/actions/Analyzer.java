@@ -142,7 +142,11 @@ public class Analyzer {
 						isOnlyTestIntoGroup = false;
 					}
 				} else {
-					logger.println(job.getJobName() + " no last or no last results");
+					if (job.getResults() != null) {
+						logger.println(job.getJobName() + " has status : " + job.getResults().getStatus() + "");
+					} else {
+						logger.println(job.getJobName() + " no last build or report");
+					}
 				}
 			}
 			// Set Results Per Group

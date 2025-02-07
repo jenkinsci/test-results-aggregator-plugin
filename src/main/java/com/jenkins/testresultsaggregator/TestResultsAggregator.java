@@ -205,7 +205,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 			aggregatedSavedData = getPreviousData2(run.getPreviousSuccessfulBuild(), validatedData);
 		}
 		//
-		boolean configChanges = checkConfigChanges(aggregatedSavedData);
+		boolean configChanges = checkConfigChanges(logger, aggregatedSavedData);
 		// Collect Data
 		Collector collector = new Collector(globalConfigDTO.getJenkinsUrl(), globalConfigDTO.getUserName(), globalConfigDTO.getPassword(), listener.getLogger(), validatedData);
 		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges, ignoreDisabledJobs);
@@ -213,7 +213,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		// Analyze Results
 		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious(), getIgnoreRunningJobs());
 		// Reporter for HTML and mail
-		Reporter reporter = new Reporter(logger, workspace, run.getRootDir(), globalConfigDTO.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs);
+		Reporter reporter = new Reporter(logger, workspace, run.getRootDir(), globalConfigDTO.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs, configChanges);
 		reporter.publishResuts(aggregated, properties, localizedColumns, run.getRootDir());
 		// Add Build Action
 		run.addAction(new TestResultsAggregatorTestResultBuildAction(aggregated));
@@ -243,7 +243,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 			aggregatedSavedData = getPreviousData2(build, validatedData);
 		}
 		//
-		boolean configChanges = checkConfigChanges(aggregatedSavedData);
+		boolean configChanges = checkConfigChanges(logger, aggregatedSavedData);
 		// Collect Data
 		Collector collector = new Collector(globalConfigDTO.getJenkinsUrl(), globalConfigDTO.getUserName(), globalConfigDTO.getPassword(), listener.getLogger(), validatedData);
 		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges, ignoreDisabledJobs);
@@ -251,7 +251,8 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		// Analyze Results
 		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious(), getIgnoreRunningJobs());
 		// Reporter for HTML and mail
-		Reporter reporter = new Reporter(logger, build.getProject().getSomeWorkspace(), build.getRootDir(), globalConfigDTO.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs);
+		Reporter reporter = new Reporter(logger, build.getProject().getSomeWorkspace(), build.getRootDir(), globalConfigDTO.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs,
+				configChanges);
 		reporter.publishResuts(aggregated, properties, localizedColumns, build.getRootDir());
 		// Add Build Action
 		build.addAction(new TestResultsAggregatorTestResultBuildAction(aggregated));
@@ -275,7 +276,7 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		return globalConfigDTO;
 	}
 	
-	private boolean checkConfigChanges(Aggregated aggregatedSavedData) {
+	private boolean checkConfigChanges(PrintStream logger, Aggregated aggregatedSavedData) {
 		boolean foundConfigChanges = false;
 		try {
 			if (aggregatedSavedData.getIgnoreDisabledJobs() != null && aggregatedSavedData.getIgnoreDisabledJobs().booleanValue() != getIgnoreDisabledJobs()) {
@@ -292,6 +293,9 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 			}
 		} catch (Exception ex) {
 			
+		}
+		if (foundConfigChanges) {
+			logger.println("Found Configuration changes");
 		}
 		return foundConfigChanges;
 	}

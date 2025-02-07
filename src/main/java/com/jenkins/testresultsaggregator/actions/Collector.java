@@ -277,8 +277,7 @@ public class Collector {
 					job.setJob(getDetails(job));
 					if (job.getJob() == null) {
 						text.append("Job '" + job.getJobName() + "' found " + JobStatus.NOT_FOUND.name());
-						job.setLast(new BuildWithDetailsAggregator());
-						job.getLast().setResults(new JobResults(JobStatus.NOT_FOUND, 0, job.getUrl()));
+						job.setResults(new Results(JobStatus.NOT_FOUND, job.getUrl()));
 					} else if (!job.getJob().isBuildable()) {
 						text.append("Job '" + job.getJobName() + "' found " + JobStatus.DISABLED.name());
 						if (!ignoreDisabled) {
