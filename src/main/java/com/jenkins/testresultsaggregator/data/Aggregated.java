@@ -34,6 +34,7 @@ public class Aggregated extends BaseResult {
 	private Boolean ignoreDisabledJobs;
 	private Boolean ignoreNotFoundJobs;
 	private Boolean ignoreRunningJobs;
+	private Boolean ignoreAbortedJobs;
 	private Boolean compareWithPreviousRun;
 	
 	private Run<?, ?> owner;
@@ -341,6 +342,14 @@ public class Aggregated extends BaseResult {
 	
 	public void setCompareWithPreviousRun(Boolean compareWithPreviousRun) {
 		this.compareWithPreviousRun = compareWithPreviousRun;
+	}
+	
+	public Boolean getIgnoreAbortedJobs() {
+		return ignoreAbortedJobs;
+	}
+	
+	public void setIgnoreAbortedJobs(Boolean ignoreAbortedJobs) {
+		this.ignoreAbortedJobs = ignoreAbortedJobs;
 	}
 	
 }

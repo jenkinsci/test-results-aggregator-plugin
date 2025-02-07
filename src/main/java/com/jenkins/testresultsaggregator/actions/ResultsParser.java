@@ -169,19 +169,25 @@ public class ResultsParser {
 							try {
 								finalResults.setIgnoreNotFoundJobs(getBoolean(currentNodeResults));
 							} catch (Exception ex) {
-								finalResults.setIgnoreDisabledJobs(null);
+								finalResults.setIgnoreNotFoundJobs(null);
 							}
 						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.IGNORERUNNINGJOBS)) {
 							try {
 								finalResults.setIgnoreRunningJobs(getBoolean(currentNodeResults));
 							} catch (Exception ex) {
-								finalResults.setIgnoreDisabledJobs(null);
+								finalResults.setIgnoreRunningJobs(null);
 							}
 						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.COMPAREWITHPREVIOUSRUN)) {
 							try {
 								finalResults.setCompareWithPreviousRun(getBoolean(currentNodeResults));
 							} catch (Exception ex) {
-								finalResults.setIgnoreDisabledJobs(null);
+								finalResults.setCompareWithPreviousRun(null);
+							}
+						} else if (currentNodeResults.getNodeName().equalsIgnoreCase(TestResultsAggregatorProjectAction.IGNOREABORTEDJOBS)) {
+							try {
+								finalResults.setIgnoreAbortedJobs(getBoolean(currentNodeResults));
+							} catch (Exception ex) {
+								finalResults.setIgnoreAbortedJobs(null);
 							}
 						}
 					}

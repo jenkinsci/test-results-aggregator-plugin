@@ -288,6 +288,9 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 			if (aggregatedSavedData.getIgnoreRunningJobs() != null && aggregatedSavedData.getIgnoreRunningJobs().booleanValue() != getIgnoreRunningJobs()) {
 				foundConfigChanges = true;
 			}
+			if (aggregatedSavedData.getIgnoreAbortedJobs() != null && aggregatedSavedData.getIgnoreAbortedJobs().booleanValue() != getIgnoreAbortedJobs()) {
+				foundConfigChanges = true;
+			}
 			if (aggregatedSavedData.getCompareWithPreviousRun() != null && aggregatedSavedData.getCompareWithPreviousRun().booleanValue() != compareWithPrevious()) {
 				foundConfigChanges = true;
 			}

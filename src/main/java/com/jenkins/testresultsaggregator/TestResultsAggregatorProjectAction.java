@@ -73,6 +73,7 @@ public class TestResultsAggregatorProjectAction extends TestResultProjectAction 
 	public static final String IGNOREDISABLEDJOBS = "IGNOREDISABLEDJOBS";
 	public static final String IGNORENOTFOUNDJOBS = "IGNORENOTFOUNDJOBS";
 	public static final String IGNORERUNNINGJOBS = "IGNORERUNNINGJOBS";
+	public static final String IGNOREABORTEDJOBS = "IGNOREABORTEDJOBS";
 	public static final String COMPAREWITHPREVIOUSRUN = "COMPAREWITHPREVIOUSRUN";
 	
 	public TestResultsAggregatorProjectAction(Job<?, ?> project) {

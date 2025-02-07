@@ -53,6 +53,7 @@ public class XMLReporter {
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.IGNOREDISABLEDJOBS, properties.getProperty(AggregatorProperties.IGNORE_DISABLED_JOBS.name())));
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.IGNORENOTFOUNDJOBS, properties.getProperty(AggregatorProperties.IGNORE_NOTFOUND_JOBS.name())));
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.IGNORERUNNINGJOBS, properties.getProperty(AggregatorProperties.IGNORE_RUNNING_JOBS.name())));
+			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.IGNOREABORTEDJOBS, properties.getProperty(AggregatorProperties.IGNORE_ABORTED_JOBS.name())));
 			writer.println(TAB + TAB + xmlTag(TestResultsAggregatorProjectAction.COMPAREWITHPREVIOUSRUN, properties.getProperty(AggregatorProperties.COMPARE_WITH_PREVIOUS_RUN.name())));
 			writer.println(TAB + SE + CONFIG + E);
 			// Results
