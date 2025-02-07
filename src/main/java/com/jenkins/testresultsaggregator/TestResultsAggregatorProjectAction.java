@@ -35,7 +35,9 @@ public class TestResultsAggregatorProjectAction extends TestResultProjectAction 
 	public static final String UNSTABLE = "Unstable";
 	public static final String UNSTABLE_KEEP = "KeepUnstable";
 	public static final String ABORTED = "Aborted";
+	public static final String SKIPPED = "Skipped";
 	public static final String RUNNING = "Running";
+	public static final String DISABLED = "Disabled";
 	
 	// For Jobs
 	public static final String JOB_SUCCESS = "SUCCESS";
@@ -46,6 +48,7 @@ public class TestResultsAggregatorProjectAction extends TestResultProjectAction 
 	public static final String JOB_UNSTABLE_KEEP = "KEEPUNSTABLE";
 	public static final String JOB_ABORTED = "ABORTED";
 	public static final String JOB_RUNNING = "RUNNING";
+	public static final String JOB_DISABLED = "DISABLED";
 	public static final String JOB_TOTAL = "TOTAL";
 	
 	// For Tests
@@ -215,6 +218,7 @@ public class TestResultsAggregatorProjectAction extends TestResultProjectAction 
 				dataset.add(action.getUnstableCount() + action.getUnstableKeepCount(), UNSTABLE, label);
 				dataset.add(action.getAborted(), ABORTED, label);
 				dataset.add(action.getRunning(), RUNNING, label);
+				dataset.add(action.getDisabled(), DISABLED, label);
 			}
 		}
 	}

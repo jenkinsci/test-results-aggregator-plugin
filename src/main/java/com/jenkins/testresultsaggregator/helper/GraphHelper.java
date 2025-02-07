@@ -109,6 +109,8 @@ public class GraphHelper {
 				} else if (TestResultsAggregatorProjectAction.UNSTABLE.equalsIgnoreCase(dataset.getRowKey(row).toString())
 						|| TestResultsAggregatorProjectAction.UNSTABLE_KEEP.equalsIgnoreCase(dataset.getRowKey(row).toString())) {
 					return String.valueOf(report.getUnstableCount() + report.getUnstableKeepCount()) + " " + TestResultsAggregatorProjectAction.UNSTABLE;
+				} else if (TestResultsAggregatorProjectAction.DISABLED.equalsIgnoreCase(dataset.getRowKey(row).toString())) {
+					return String.valueOf(report.getDisabled() + " " + TestResultsAggregatorProjectAction.DISABLED);
 				} else {
 					return "";
 				}
@@ -130,6 +132,8 @@ public class GraphHelper {
 			} else if (TestResultsAggregatorProjectAction.UNSTABLE.equalsIgnoreCase(dataset.getRowKey(i).toString())
 					|| TestResultsAggregatorProjectAction.UNSTABLE_KEEP.equalsIgnoreCase(dataset.getRowKey(i).toString())) {
 				ar.setSeriesPaint(i, Colors.UNSTABLE); // Unstable
+			} else if (TestResultsAggregatorProjectAction.DISABLED.equalsIgnoreCase(dataset.getRowKey(i).toString())) {
+				ar.setSeriesPaint(i, Colors.DISABLED); // DISABLED
 			}
 		}
 		plot.setInsets(new RectangleInsets(0, 0, 0, 5.0));

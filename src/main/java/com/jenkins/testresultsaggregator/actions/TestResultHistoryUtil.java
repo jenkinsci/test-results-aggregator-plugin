@@ -33,7 +33,7 @@ public class TestResultHistoryUtil {
 	}
 	
 	public static String toSummary(TestResultsAggregatorTestResultBuildAction action) {
-		int prevFailed, prevUnstable, prevSucces, prevAborted, prevRunning, prevTotal;
+		int prevFailed, prevUnstable, prevSucces, prevAborted, prevRunning, prevDisabled, prevTotal;
 		Run<?, ?> run = action.run;
 		Aggregated previousResult = TestResultHistoryUtil.getPreviousBuildTestResults(run);
 		prevFailed = previousResult.getFailedJobs() + previousResult.getKeepFailJobs();
@@ -41,7 +41,8 @@ public class TestResultHistoryUtil {
 		prevSucces = previousResult.getSuccessJobs() + previousResult.getFixedJobs();
 		prevAborted = previousResult.getAbortedJobs();
 		prevRunning = previousResult.getRunningJobs();
-		prevTotal = prevFailed + prevUnstable + prevSucces + prevAborted + prevRunning;
+		prevDisabled = previousResult.getDisabledJobs();
+		prevTotal = prevFailed + prevUnstable + prevSucces + prevAborted + prevRunning + prevDisabled;
 		Aggregated result = action.getResult();
 		int total = result.getAbortedJobs() +
 				result.getFailedJobs() +
@@ -50,12 +51,15 @@ public class TestResultHistoryUtil {
 				result.getSuccessJobs() +
 				result.getFixedJobs() +
 				result.getUnstableJobs() +
-				result.getKeepUnstableJobs();
+				result.getKeepUnstableJobs() +
+				result.getDisabledJobs();
 		return "<ul>" + Helper.diff(prevTotal, total, "Total Jobs ", true) +
 				Helper.diff(prevFailed, result.getFailedJobs() + result.getKeepFailJobs(), TestResultsAggregatorProjectAction.FAILED + " Jobs ", true) +
+				Helper.diff(prevFailed, result.getSuccessJobs() + result.getFixedJobs(), TestResultsAggregatorProjectAction.SUCCESS + " Jobs ", true) +
 				Helper.diff(prevUnstable, result.getUnstableJobs() + result.getKeepUnstableJobs(), TestResultsAggregatorProjectAction.UNSTABLE + " Jobs ", true) +
-				Helper.diff(prevAborted, result.getAbortedJobs(), TestResultsAggregatorProjectAction.ABORTED + " Jobs ", true) +
 				Helper.diff(prevRunning, result.getRunningJobs(), TestResultsAggregatorProjectAction.RUNNING + " Jobs ", true) +
+				Helper.diff(prevAborted, result.getAbortedJobs(), TestResultsAggregatorProjectAction.ABORTED + " Jobs ", true) +
+				Helper.diff(prevDisabled, result.getDisabledJobs(), TestResultsAggregatorProjectAction.DISABLED + " Jobs ", true) +
 				"</ul>";
 	}
 	
@@ -74,9 +78,9 @@ public class TestResultHistoryUtil {
 		}
 		Aggregated result = action.getResult();
 		return "<ul>" + Helper.diff(prevTotal, result.getResults().getTotal(), "Total Tests ", true) +
-				Helper.diff(prevFailed, result.getResults().getFail(), TestResultsAggregatorProjectAction.FAILED + " Tests ", true) +
-				Helper.diff(prevUnstable, result.getResults().getSkip(), TestResultsAggregatorProjectAction.ABORTED + " Tests ", true) +
 				Helper.diff(prevSucces, result.getResults().getPass(), TestResultsAggregatorProjectAction.SUCCESS + " Tests ", true) +
+				Helper.diff(prevFailed, result.getResults().getFail(), TestResultsAggregatorProjectAction.FAILED + " Tests ", true) +
+				Helper.diff(prevUnstable, result.getResults().getSkip(), TestResultsAggregatorProjectAction.SKIPPED + " Tests ", true) +
 				"</ul>";
 	}
 	

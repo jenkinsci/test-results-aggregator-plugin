@@ -41,6 +41,7 @@ public class TestResultsAggregatorTestResultBuildAction extends AbstractTestResu
 	protected int keepunstable;
 	protected int aborted;
 	protected int running;
+	private int disabled;
 	// Tests
 	protected int successTTests;
 	protected int failedTTests;
@@ -63,6 +64,7 @@ public class TestResultsAggregatorTestResultBuildAction extends AbstractTestResu
 		this.unstable = aggregated.getUnstableJobs();
 		this.keepunstable = aggregated.getKeepUnstableJobs();
 		this.running = aggregated.getRunningJobs();
+		this.disabled = aggregated.getDisabledJobs();
 		// Tests stats
 		if (aggregated.getResults() != null) {
 			this.successTTests = aggregated.getResults().getPass();
@@ -84,10 +86,11 @@ public class TestResultsAggregatorTestResultBuildAction extends AbstractTestResu
 		int savedUnstableKeepCount = keepunstable;
 		int savedAbortedCount = aborted;
 		int savedRunningCount = running;
+		int savedDisabledCount = disabled;
 		
 		count(aggregatedDTO);
 		if (success != savedSuccessCount || failed != savedFailedCount || unstable != savedUnstableCount || aborted != savedAbortedCount
-				|| running != savedRunningCount || fixed != savedFixedCount || keepfailed != savedFailedKeepCount || keepunstable != savedUnstableKeepCount) {
+				|| running != savedRunningCount || fixed != savedFixedCount || keepfailed != savedFailedKeepCount || keepunstable != savedUnstableKeepCount || disabled != savedDisabledCount) {
 			try {
 				owner.save();
 			} catch (IOException x) {
@@ -223,6 +226,15 @@ public class TestResultsAggregatorTestResultBuildAction extends AbstractTestResu
 	@Override
 	public Collection<? extends Action> getProjectActions() {
 		return Collections.singleton(new TestResultsAggregatorProjectAction(run.getParent()));
+	}
+	
+	public int getDisabled() {
+		countAsNeeded();
+		return disabled;
+	}
+	
+	public void setDisabled(int disabled) {
+		this.disabled = disabled;
 	}
 	
 }

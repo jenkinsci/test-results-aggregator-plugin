@@ -38,6 +38,13 @@ div() {
 					text("(${Functions.getDiffString(my.result.runningJobs - prevResult.runningJobs)})")
 				}
 			}
+			
+			if (my.result.getDisabledJobs() > 0) {
+				text(", ${my.result.getDisabledJobs()} disabled")
+				if (prevResult) {
+					text("(${Functions.getDiffString(my.result.getDisabledJobs() - prevResult.getDisabledJobs())})")
+				}
+			}
 		}
 		
 		div(style: "width:100%; height:1em; background-color: ${Colors.htmlSUCCESS()}") {
@@ -45,10 +52,12 @@ div() {
 			def skippc = my.result.getUnstable() * 100 / my.result.getTotalJobs()
 			def abortpc = my.result.abortedJobs * 100 / my.result.getTotalJobs()
 			def runnpc = my.result.runningJobs * 100 / my.result.getTotalJobs()
+			def disbl = my.result.getDisabledJobs() * 100 / my.result.getTotalJobs()
 			div(style: "width:${failpc}%; height: 1em; background-color: ${Colors.htmlFAILED()}; float: left")
 			div(style: "width:${skippc}%; height: 1em; background-color: ${Colors.htmlUNSTABLE()}; float: left")
 			div(style: "width:${abortpc}%; height: 1em; background-color: ${Colors.htmlABORTED()}; float: left")
 			div(style: "width:${runnpc}%; height: 1em; background-color: ${Colors.htmlRUNNING()}; float: left")
+			div(style: "width:${disbl}%; height: 1em; background-color: ${Colors.htmlDISABLED()}; float: left")
 		}
 		
 		div(id: "pass", align: "right") {

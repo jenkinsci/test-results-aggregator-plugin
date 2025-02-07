@@ -505,3 +505,65 @@ if (my.result.runningJobs > 0) {
 		}
 	}
 }
+
+if (my.result.disabledJobs > 0) {
+	h2(align: "left", style:"color:${Colors.htmlDISABLED()}" ,"Disabled Jobs")
+	a(href: "", class: "toggle-table", "data-toggle-target": "disabled-tbl") {
+		text("hide/expand the table")
+	}
+	table(id:"disabled-tbl", border:"1px", class:"pane sortable") {
+		thead() {
+			tr() {
+				th(class: "pane-header") {
+					text("Job Name")
+				}
+				th(class: "pane-header" , width: "100px") {
+					text("Tests")
+				}
+				th(class: "pane-header" , width: "100px") {
+					text("Pass")
+				}
+				th(class: "pane-header" , width: "100px") {
+					text("Fail")
+				}
+				th(class: "pane-header" , width: "100px") {
+					text("Skip")
+				}
+				th(class: "pane-header" , width: "100px") {
+					text("Link")
+				}
+			}
+		}
+		tbody() {
+			for (data in my.result.getData()) {
+				for (job in data.getJobs()) {
+					if(job.getResults()!=null && "${JobStatus.DISABLED.name()}".equalsIgnoreCase(job.getResults().getStatusAdvanced())) {
+						tr() {
+							td(align: "left") {
+								text("${job.getJobName()}")
+							}
+							td(align: "center") {
+								raw("${job.getResults().getTotal()}")
+							}
+							td(align: "center") {
+								raw("${job.getResults().getPass()}")
+							}
+							td(align: "center") {
+								raw("${job.getResults().getFail()}")
+							}
+							td(align: "center") {
+								raw("${job.getResults().getSkip()}")
+							}
+							td(align: "center") {
+								a(href:"${job.getUrl()}") {
+									text(">>>")
+								}
+								text(" ")
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
