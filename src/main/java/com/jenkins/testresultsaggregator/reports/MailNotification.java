@@ -52,7 +52,7 @@ public class MailNotification {
 		boolean allJobsNotFound = true;
 		for (Data tempDataDTO : dataJob) {
 			for (Job tempDataJobDTO : tempDataDTO.getJobs()) {
-				if (tempDataJobDTO.getJob() != null && !JobStatus.NOT_FOUND.name().equals(tempDataJobDTO.getResults().getStatus())) {
+				if (tempDataJobDTO.getJob() != null && JobStatus.NOT_FOUND != tempDataJobDTO.getResults().getStatus()) {
 					allJobsNotFound = false;
 					break;
 				}

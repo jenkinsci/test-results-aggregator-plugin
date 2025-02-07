@@ -131,7 +131,7 @@ public class Aggregated extends BaseResult {
 	}
 	
 	public int getTotalJobs() {
-		setTotalJobs(runningJobs + successJobs + fixedJobs + failedJobs + keepFailJobs + unstableJobs + keepUnstableJobs + abortedJobs);
+		setTotalJobs(runningJobs + successJobs + fixedJobs + failedJobs + keepFailJobs + unstableJobs + keepUnstableJobs + abortedJobs + disabledJobs);
 		return totalJobs;
 	}
 	
@@ -265,6 +265,7 @@ public class Aggregated extends BaseResult {
 		aggregatedCopy.setTotalJobs(totalJobs);
 		aggregatedCopy.setTotalNumberOfChanges(totalNumberOfChanges);
 		aggregatedCopy.setUnstableJobs(unstableJobs);
+		aggregatedCopy.setDisabledJobs(disabledJobs);
 		return aggregatedCopy;
 	}
 	

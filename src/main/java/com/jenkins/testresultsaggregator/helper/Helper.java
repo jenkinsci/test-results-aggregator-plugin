@@ -415,14 +415,14 @@ public class Helper {
 	}
 	
 	public void calculateNewResults(Job job, boolean ignoreRunningJobs) {
-		BuildResult status = job.getLast().getResult();
-		if (job.getLast().isBuilding()) {
-			status = BuildResult.BUILDING;
-		}
+		JobStatus status = job.getLast().getResults().getStatus();
 		String statusAdvanced;
 		switch (status) {
 			case ABORTED:
 				calc(null, JobStatus.ABORTED.name(), job);
+				break;
+			case DISABLED:
+				calc(null, JobStatus.DISABLED.name(), job);
 				break;
 			case SUCCESS:
 				if (job.getPrevious() == null) {
@@ -448,21 +448,13 @@ public class Helper {
 					calc(null, statusAdvanced, job);
 				}
 				break;
-			case BUILDING:
+			case RUNNING:
 				if (job.getResults() == null) {
 					calc(null, JobStatus.RUNNING.name(), job);
 				} else {
 					statusAdvanced = calculateAdvancedStatusDecideLastResults(job, ignoreRunningJobs);
 					calc(job.getResults(), statusAdvanced, job);
 				}
-				break;
-			case CANCELLED:
-				break;
-			case NOT_BUILT:
-				break;
-			case REBUILDING:
-				break;
-			case UNKNOWN:
 				break;
 			default:
 				break;
@@ -495,7 +487,7 @@ public class Helper {
 		}
 		if (!statusAdvanced.equalsIgnoreCase(JobStatus.RUNNING_REPORT_PREVIOUS.name())) {
 			job.setResults(results);
-			// results.setStatus(job.getLast().getResults().getStatus());
+			results.setStatus(job.getLast().getResults().getStatus());
 			results.setNumber(job.getLast().getResults().getNumber());
 			results.setDuration(job.getLast().getResults().getDuration());
 			results.setDescription(job.getLast().getResults().getDescription());

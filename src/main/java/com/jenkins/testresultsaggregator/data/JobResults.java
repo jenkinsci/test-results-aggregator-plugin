@@ -2,11 +2,13 @@ package com.jenkins.testresultsaggregator.data;
 
 import java.io.Serializable;
 
+import com.offbytwo.jenkins.model.BuildResult;
+
 public class JobResults implements Serializable {
 	
 	private static final long serialVersionUID = 3491974223667L;
 	
-	private String status;
+	private JobStatus status;
 	private int number;
 	private String url;
 	
@@ -33,12 +35,50 @@ public class JobResults implements Serializable {
 		
 	}
 	
-	public String getStatus() {
+	public JobResults(JobStatus status, int number, String url) {
+		setStatus(status);
+		setNumber(number);
+		setUrl(url);
+	}
+	
+	public JobStatus getStatus() {
 		return status;
 	}
 	
-	public void setStatus(String status) {
+	public void setStatus(JobStatus status) {
 		this.status = status;
+	}
+	
+	public void setStatusFromBuildResult(BuildResult buildResult) {
+		switch (buildResult) {
+			case ABORTED:
+				status = JobStatus.ABORTED;
+				break;
+			case BUILDING:
+				status = JobStatus.RUNNING;
+				break;
+			case CANCELLED:
+				status = JobStatus.DISABLED;
+				break;
+			case FAILURE:
+				status = JobStatus.FAILURE;
+				break;
+			case NOT_BUILT:
+				status = JobStatus.NO_LAST_BUILD_DATA;
+				break;
+			case SUCCESS:
+				status = JobStatus.SUCCESS;
+				break;
+			case UNKNOWN:
+				status = JobStatus.NOT_FOUND;
+				break;
+			case UNSTABLE:
+				status = JobStatus.UNSTABLE;
+				break;
+			default:
+				status = JobStatus.NOT_FOUND;
+				break;
+		}
 	}
 	
 	public int getNumber() {

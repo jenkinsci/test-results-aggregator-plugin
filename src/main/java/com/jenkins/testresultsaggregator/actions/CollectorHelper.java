@@ -35,10 +35,10 @@ public class CollectorHelper {
 	
 	public JobResults calculate() {
 		if (buildDetails.isBuilding()) {
-			jobResults.setStatus(JobStatus.RUNNING.name());
+			jobResults.setStatus(JobStatus.RUNNING);
 		} else {
 			if (buildDetails.getResult() != null) {
-				jobResults.setStatus(buildDetails.getResult().name());
+				jobResults.setStatusFromBuildResult(buildDetails.getResult());
 			}
 		}
 		jobResults.setNumber(buildDetails.getNumber());

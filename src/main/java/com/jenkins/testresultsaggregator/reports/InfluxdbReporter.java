@@ -41,12 +41,7 @@ public class InfluxdbReporter {
 					// Post Data per Job
 					if (job.getLast() != null) {
 						Instant time = Instant.ofEpochMilli(job.getLast().getTimestamp());
-						if (job.getPrevious() != null && job.getPrevious().getResults() != null
-								&& "RUNNING".equalsIgnoreCase(job.getPrevious().getResults().getStatus())
-								&& !"RUNNING".equalsIgnoreCase(job.getResults().getStatus())) {
-							time = time.plusMillis(1000);// Add one sec for previously RUNNING jobs and last status != RUNNING in order to update the status in Grafana
-						}
-						if (job.getResults() != null && job.getResults().getStatus() != null && !job.getResults().getStatus().equalsIgnoreCase(job.getResults().getStatusAdvanced())) {
+						if (job.getResults() != null && job.getResults().getStatus() != null && !job.getResults().getStatus().name().equalsIgnoreCase(job.getResults().getStatusAdvanced())) {
 							time = time.plusMillis(1000);// Add one sec for previously changes into calculated Advanced status in order to update the status in Grafana
 						}
 						Point pointJenkinsJob = Point.measurement(job.getJobName() + "#" + job.getLast().getBuildNumber())
@@ -57,11 +52,11 @@ public class InfluxdbReporter {
 								.addTag("Url", job.getUrl())
 								.addTag("Group", data.getGroupName())
 								.addTag("Status", job.getResults().getStatusAdvanced())
-								.addTag("Total Tests", Integer.toString(job.getLast().getResults().getTotal()))
-								.addTag("Pass", Integer.toString(job.getLast().getResults().getPass()))
-								.addTag("Fail", Integer.toString(job.getLast().getResults().getFail()))
-								.addTag("Skip", Integer.toString(job.getLast().getResults().getSkip()))
-								.addTag("Duration", Long.toString(job.getLast().getResults().getDuration()))
+								.addTag("Total Tests", Integer.toString(job.getResults().getTotal()))
+								.addTag("Pass", Integer.toString(job.getResults().getPass()))
+								.addTag("Fail", Integer.toString(job.getResults().getFail()))
+								.addTag("Skip", Integer.toString(job.getResults().getSkip()))
+								.addTag("Duration", Long.toString(job.getResults().getDuration()))
 								.addField("Result", job.getResults().getStatusAdvanced());
 						send(pointJenkinsJob, bucket, org, errorPosting);
 					} else {

@@ -67,86 +67,82 @@ public class Analyzer {
 			data.setReportGroup(new ReportGroup());
 			
 			for (Job job : data.getJobs()) {
-				if (job.getResults() != null && (JobStatus.NOT_FOUND.name().equalsIgnoreCase(job.getResults().getStatus()) ||
-						JobStatus.NO_LAST_BUILD_DATA.name().equalsIgnoreCase(job.getResults().getStatus()))) {
-					// Do nothing
-				} else {
-					if (job.getLast() != null && job.getLast().getResults() != null) {
-						if (job.getResults() != null && job.getLast().getBuildNumber() == job.getResults().getNumber() && !job.getIsBuilding()) {
-							// Already have results and requested the same results
-							calculateReport(job, outOfDateResults, ignoreRunning);
-						} else {
-							new Helper().calculateNewResults(job, ignoreRunning);
-							calculateReport(job, outOfDateResults, ignoreRunning);
-						}
-						// Total Duration
-						aggregated.setTotalDuration(aggregated.getTotalDuration() + job.getResults().getDuration());
-						// Total Changes
-						aggregated.setTotalNumberOfChanges(aggregated.getTotalNumberOfChanges() + job.getResults().getNumberOfChanges());
-						// Calculate Group
-						String jobStatus = job.getResults().getStatusAdvanced();
-						if (jobStatus != null) {
-							if (jobStatus.startsWith(JobStatus.SUCCESS.name())) {
-								data.getReportGroup().setJobSuccess(data.getReportGroup().getJobSuccess() + 1);
-								aggregated.setSuccessJobs(aggregated.getSuccessJobs() + 1);
-								jobSuccess++;
-							} else if (jobStatus.startsWith(JobStatus.FIXED.name())) {
-								data.getReportGroup().setJobSuccess(data.getReportGroup().getJobSuccess() + 1);
-								aggregated.setFixedJobs(aggregated.getFixedJobs() + 1);
-								jobSuccess++;
-							} else if (jobStatus.startsWith(JobStatus.RUNNING.name()) && (!ignoreRunning || !compareWithPrevious)) {
-								foundRunning = true;
-								data.getReportGroup().setJobRunning(data.getReportGroup().getJobRunning() + 1);
-								aggregated.setRunningJobs(aggregated.getRunningJobs() + 1);
-								jobRunning++;
-							} else if (jobStatus.startsWith(JobStatus.FAILURE.name())) {
-								foundFailure = true;
-								data.getReportGroup().setJobFailed(data.getReportGroup().getJobFailed() + 1);
-								aggregated.setFailedJobs(aggregated.getFailedJobs() + 1);
-								jobFailed++;
-							} else if (jobStatus.startsWith(JobStatus.STILL_FAILING.name())) {
-								foundFailure = true;
-								data.getReportGroup().setJobFailed(data.getReportGroup().getJobFailed() + 1);
-								aggregated.setKeepFailJobs(aggregated.getKeepFailJobs() + 1);
-								jobFailed++;
-							} else if (jobStatus.startsWith(JobStatus.UNSTABLE.name())) {
-								foundSkip = true;
-								data.getReportGroup().setJobUnstable(data.getReportGroup().getJobUnstable() + 1);
-								aggregated.setUnstableJobs(aggregated.getUnstableJobs() + 1);
-								jobUnstable++;
-							} else if (jobStatus.startsWith(JobStatus.STILL_UNSTABLE.name())) {
-								foundSkip = true;
-								data.getReportGroup().setJobUnstable(data.getReportGroup().getJobUnstable() + 1);
-								aggregated.setKeepUnstableJobs(aggregated.getKeepUnstableJobs() + 1);
-								jobUnstable++;
-							} else if (jobStatus.startsWith(JobStatus.ABORTED.name()) && "false".equalsIgnoreCase((String) properties.get(AggregatorProperties.IGNORE_ABORTED_JOBS.name()))) {
-								foundSkip = true;
-								data.getReportGroup().setJobAborted(data.getReportGroup().getJobAborted() + 1);
-								aggregated.setAbortedJobs(aggregated.getAbortedJobs() + 1);
-								jobAborted++;
-							} else if (jobStatus.startsWith(JobStatus.DISABLED.name()) && "false".equalsIgnoreCase((String) properties.get(AggregatorProperties.IGNORE_DISABLED_JOBS.name()))) {
-								foundDisabled = true;
-								data.getReportGroup().setJobDisabled(data.getReportGroup().getJobDisabled() + 1);
-								aggregated.setDisabledJobs(aggregated.getDisabledJobs() + 1);
-								jobDisabled++;
-							}
-						}
-						// Calculate Total Tests Per Group
-						resultsPerGroup.setPass(resultsPerGroup.getPass() + job.getResults().getPass());
-						resultsPerGroup.setSkip(resultsPerGroup.getSkip() + job.getResults().getSkip());
-						resultsPerGroup.setFail(resultsPerGroup.getFail() + job.getResults().getFail());
-						resultsPerGroup.setTotal(resultsPerGroup.getTotal() + job.getResults().getTotal());
-						// Calculate Total Tests for Summary Column , exclude RUNNING when ignore running is false
-						if (!job.getIsBuilding() && (!ignoreRunning || !compareWithPrevious)) {
-							totalResults.addResults(job.getResults());
-						}
-						// Has tests
-						if (job.getLast().getResults().getTotal() <= 0) {
-							isOnlyTestIntoGroup = false;
-						}
+				// logger.println(job.getJobName() + " building:" + job.getIsBuilding() + " has last:" + job.getLast() + " has result:" + job.getResults() + " has previous:" + job.getPrevious());
+				if (job.getLast() != null && job.getLast().getResults() != null) {
+					if (job.getResults() != null && job.getLast().getBuildNumber() == job.getResults().getNumber() && !job.getIsBuilding() && job.getLast().getResults().getStatus().equals(job.getResults().getStatus())) {
+						// Already have results and requested the same results
+						calculateReport(job, outOfDateResults, ignoreRunning);
 					} else {
-						// ?
+						new Helper().calculateNewResults(job, ignoreRunning);
+						calculateReport(job, outOfDateResults, ignoreRunning);
 					}
+					// Total Duration
+					aggregated.setTotalDuration(aggregated.getTotalDuration() + job.getResults().getDuration());
+					// Total Changes
+					aggregated.setTotalNumberOfChanges(aggregated.getTotalNumberOfChanges() + job.getResults().getNumberOfChanges());
+					// Calculate Group
+					String jobStatus = job.getResults().getStatusAdvanced();
+					if (jobStatus != null) {
+						if (jobStatus.startsWith(JobStatus.SUCCESS.name())) {
+							data.getReportGroup().setJobSuccess(data.getReportGroup().getJobSuccess() + 1);
+							aggregated.setSuccessJobs(aggregated.getSuccessJobs() + 1);
+							jobSuccess++;
+						} else if (jobStatus.startsWith(JobStatus.FIXED.name())) {
+							data.getReportGroup().setJobSuccess(data.getReportGroup().getJobSuccess() + 1);
+							aggregated.setFixedJobs(aggregated.getFixedJobs() + 1);
+							jobSuccess++;
+						} else if (jobStatus.startsWith(JobStatus.RUNNING.name()) && (!ignoreRunning || !compareWithPrevious)) {
+							foundRunning = true;
+							data.getReportGroup().setJobRunning(data.getReportGroup().getJobRunning() + 1);
+							aggregated.setRunningJobs(aggregated.getRunningJobs() + 1);
+							jobRunning++;
+						} else if (jobStatus.startsWith(JobStatus.FAILURE.name())) {
+							foundFailure = true;
+							data.getReportGroup().setJobFailed(data.getReportGroup().getJobFailed() + 1);
+							aggregated.setFailedJobs(aggregated.getFailedJobs() + 1);
+							jobFailed++;
+						} else if (jobStatus.startsWith(JobStatus.STILL_FAILING.name())) {
+							foundFailure = true;
+							data.getReportGroup().setJobFailed(data.getReportGroup().getJobFailed() + 1);
+							aggregated.setKeepFailJobs(aggregated.getKeepFailJobs() + 1);
+							jobFailed++;
+						} else if (jobStatus.startsWith(JobStatus.UNSTABLE.name())) {
+							foundSkip = true;
+							data.getReportGroup().setJobUnstable(data.getReportGroup().getJobUnstable() + 1);
+							aggregated.setUnstableJobs(aggregated.getUnstableJobs() + 1);
+							jobUnstable++;
+						} else if (jobStatus.startsWith(JobStatus.STILL_UNSTABLE.name())) {
+							foundSkip = true;
+							data.getReportGroup().setJobUnstable(data.getReportGroup().getJobUnstable() + 1);
+							aggregated.setKeepUnstableJobs(aggregated.getKeepUnstableJobs() + 1);
+							jobUnstable++;
+						} else if (jobStatus.startsWith(JobStatus.ABORTED.name()) && "false".equalsIgnoreCase((String) properties.get(AggregatorProperties.IGNORE_ABORTED_JOBS.name()))) {
+							foundSkip = true;
+							data.getReportGroup().setJobAborted(data.getReportGroup().getJobAborted() + 1);
+							aggregated.setAbortedJobs(aggregated.getAbortedJobs() + 1);
+							jobAborted++;
+						} else if (jobStatus.startsWith(JobStatus.DISABLED.name()) && "false".equalsIgnoreCase((String) properties.get(AggregatorProperties.IGNORE_DISABLED_JOBS.name()))) {
+							foundDisabled = true;
+							data.getReportGroup().setJobDisabled(data.getReportGroup().getJobDisabled() + 1);
+							aggregated.setDisabledJobs(aggregated.getDisabledJobs() + 1);
+							jobDisabled++;
+						}
+					}
+					// Calculate Total Tests Per Group
+					resultsPerGroup.setPass(resultsPerGroup.getPass() + job.getResults().getPass());
+					resultsPerGroup.setSkip(resultsPerGroup.getSkip() + job.getResults().getSkip());
+					resultsPerGroup.setFail(resultsPerGroup.getFail() + job.getResults().getFail());
+					resultsPerGroup.setTotal(resultsPerGroup.getTotal() + job.getResults().getTotal());
+					// Calculate Total Tests for Summary Column , exclude RUNNING when ignore running is false
+					if (!job.getIsBuilding() && (!ignoreRunning || !compareWithPrevious)) {
+						totalResults.addResults(job.getResults());
+					}
+					// Has tests
+					if (job.getLast().getResults().getTotal() <= 0) {
+						isOnlyTestIntoGroup = false;
+					}
+				} else {
+					logger.println(job.getJobName() + " no last or no last results");
 				}
 			}
 			// Set Results Per Group
