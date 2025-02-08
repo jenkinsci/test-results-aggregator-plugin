@@ -62,14 +62,16 @@ public class InfluxdbReporter {
 					}
 					Thread.sleep(200);
 				}
+			}
+			for (Data data : aggregated.getData()) {
 				// Post group data
 				if (!Strings.isNullOrEmpty(data.getGroupName())) {
 					Point groupData = Point.measurement("GroupData")
 							.time(timeNow, WritePrecision.S)
 							.addTag("GroupName", data.getGroupName())
 							.addTag("GroupStatus", data.getReportGroup().getStatus())
-							.addTag("GroupJobPercentage", data.getReportGroup().getPercentageForJobs(false, 1))
-							.addTag("GroupTestPercentage", data.getReportGroup().getPercentageForTests(false, 1))
+							.addTag("GroupJobPercentage", data.getReportGroup().getPercentageForJobs(false, null))
+							.addTag("GroupTestPercentage", data.getReportGroup().getPercentageForTests(false, null))
 							.addField("Result", data.getReportGroup().getStatus());
 					send(groupData, bucket, org, errorPosting);
 				}
