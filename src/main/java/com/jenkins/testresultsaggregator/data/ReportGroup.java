@@ -104,11 +104,11 @@ public class ReportGroup implements Serializable {
 		if (!Strings.isNullOrEmpty(percentageForJobs) && Helper.resolvePercentage(percentageForJobs) >= 0) {
 			if (withColor) {
 				return Helper.colorizePercentage(Helper.resolvePercentage(percentageForJobs), fontSize, status);
+			} else {
+				return Helper.resolvePercentage(percentageForJobs).toString();
 			}
-		} else {
-			return "";
 		}
-		return percentageForJobs;
+		return "";
 	}
 	
 	public void setPercentageForJobs(String percentageForJobs) {
@@ -119,11 +119,11 @@ public class ReportGroup implements Serializable {
 		if (!Strings.isNullOrEmpty(percentageForTests) && Helper.resolvePercentage(percentageForTests) >= 0) {
 			if (withColor) {
 				return Helper.colorizePercentage(Helper.resolvePercentage(percentageForTests), fontSize, status);
+			} else {
+				return Helper.resolvePercentage(percentageForTests).toString();
 			}
-		} else {
-			return "";
 		}
-		return percentageForTests;
+		return "";
 	}
 	
 	public void setPercentageForTests(String percentageForTests) {

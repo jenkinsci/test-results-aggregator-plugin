@@ -26,7 +26,8 @@ public class Analyzer {
 		this.logger = logger;
 	}
 	
-	public Aggregated analyze(Aggregated aggregatedSavedData, List<Data> listData, Properties properties, boolean compareWithPrevious, boolean ignoreRunning) {
+	public Aggregated analyze(Aggregated aggregatedSavedData, List<Data> listData, Properties properties, boolean compareWithPrevious, boolean ignoreRunning, boolean ignoreDisabledJobs, boolean ignoreNotFoundJobs,
+			boolean ignoreAbortedJobs) {
 		logger.println(LocalMessages.ANALYZE.toString());
 		// Resolve
 		String outOfDateResults = properties.getProperty(TestResultsAggregator.AggregatorProperties.OUT_OF_DATE_RESULTS_ARG.name());
@@ -68,7 +69,7 @@ public class Analyzer {
 			data.setReportGroup(new ReportGroup());
 			
 			for (Job job : data.getJobs()) {
-				// logger.println(job.getJobName() + " building:" + job.getIsBuilding() + " has last:" + job.getLast() + " has result:" + job.getResults() + " has previous:" + job.getPrevious());
+				boolean foundIgnored = false;
 				if (job.getLast() != null && job.getLast().getResults() != null) {
 					if (job.getResults() != null && job.getLast().getBuildNumber() == job.getResults().getNumber() && !job.getIsBuilding() && job.getLast().getResults().getStatus().equals(job.getResults().getStatus())) {
 						// Already have results and requested the same results
@@ -77,11 +78,6 @@ public class Analyzer {
 						new Helper().calculateNewResults(job, ignoreRunning);
 						calculateReport(job, outOfDateResults, ignoreRunning);
 					}
-					// Total Duration
-					aggregated.setTotalDuration(aggregated.getTotalDuration() + job.getResults().getDuration());
-					// Total Changes
-					aggregated.setTotalNumberOfChanges(aggregated.getTotalNumberOfChanges() + job.getResults().getNumberOfChanges());
-					// Calculate Group
 					String jobStatus = job.getResults().getStatusAdvanced();
 					if (jobStatus != null) {
 						if (jobStatus.startsWith(JobStatus.SUCCESS.name())) {
@@ -118,29 +114,43 @@ public class Analyzer {
 							aggregated.setKeepUnstableJobs(aggregated.getKeepUnstableJobs() + 1);
 							jobUnstable++;
 						} else if (jobStatus.startsWith(JobStatus.ABORTED.name()) && "false".equalsIgnoreCase((String) properties.get(AggregatorProperties.IGNORE_ABORTED_JOBS.name()))) {
-							foundSkip = true;
-							data.getReportGroup().setJobAborted(data.getReportGroup().getJobAborted() + 1);
-							aggregated.setAbortedJobs(aggregated.getAbortedJobs() + 1);
-							jobAborted++;
+							if (!ignoreAbortedJobs) {
+								data.getReportGroup().setJobAborted(data.getReportGroup().getJobAborted() + 1);
+								foundSkip = true;
+								aggregated.setAbortedJobs(aggregated.getAbortedJobs() + 1);
+								jobAborted++;
+							} else {
+								foundIgnored = true;
+							}
 						} else if (jobStatus.startsWith(JobStatus.DISABLED.name()) && "false".equalsIgnoreCase((String) properties.get(AggregatorProperties.IGNORE_DISABLED_JOBS.name()))) {
-							foundDisabled = true;
-							data.getReportGroup().setJobDisabled(data.getReportGroup().getJobDisabled() + 1);
-							aggregated.setDisabledJobs(aggregated.getDisabledJobs() + 1);
-							jobDisabled++;
+							if (!ignoreDisabledJobs) {
+								foundDisabled = true;
+								data.getReportGroup().setJobDisabled(data.getReportGroup().getJobDisabled() + 1);
+								aggregated.setDisabledJobs(aggregated.getDisabledJobs() + 1);
+								jobDisabled++;
+							} else {
+								foundIgnored = true;
+							}
 						}
 					}
-					// Calculate Total Tests Per Group
-					resultsPerGroup.setPass(resultsPerGroup.getPass() + job.getResults().getPass());
-					resultsPerGroup.setSkip(resultsPerGroup.getSkip() + job.getResults().getSkip());
-					resultsPerGroup.setFail(resultsPerGroup.getFail() + job.getResults().getFail());
-					resultsPerGroup.setTotal(resultsPerGroup.getTotal() + job.getResults().getTotal());
-					// Calculate Total Tests for Summary Column , exclude RUNNING when ignore running is false
-					if (!job.getIsBuilding() && (!ignoreRunning || !compareWithPrevious)) {
-						totalResults.addResults(job.getResults());
-					}
-					// Has tests
-					if (job.getLast().getResults().getTotal() <= 0) {
-						isOnlyTestIntoGroup = false;
+					if (!foundIgnored) {
+						// Total Duration
+						aggregated.setTotalDuration(aggregated.getTotalDuration() + job.getResults().getDuration());
+						// Total Changes
+						aggregated.setTotalNumberOfChanges(aggregated.getTotalNumberOfChanges() + job.getResults().getNumberOfChanges());
+						// Calculate Total Tests Per Group
+						resultsPerGroup.setPass(resultsPerGroup.getPass() + job.getResults().getPass());
+						resultsPerGroup.setSkip(resultsPerGroup.getSkip() + job.getResults().getSkip());
+						resultsPerGroup.setFail(resultsPerGroup.getFail() + job.getResults().getFail());
+						resultsPerGroup.setTotal(resultsPerGroup.getTotal() + job.getResults().getTotal());
+						// Calculate Total Tests for Summary Column , exclude RUNNING when ignore running is false
+						if (!job.getIsBuilding() && (!ignoreRunning || !compareWithPrevious)) {
+							totalResults.addResults(job.getResults());
+						}
+						// Has tests
+						if (job.getLast().getResults().getTotal() <= 0) {
+							isOnlyTestIntoGroup = false;
+						}
 					}
 				} else {
 					if (job.getResults() != null) {
@@ -166,7 +176,7 @@ public class Analyzer {
 			data.getReportGroup().setOnlyTests(isOnlyTestIntoGroup);
 			// Calculate Percentage Per Group based on Jobs
 			if (!isOnlyTestIntoGroup) {
-				data.getReportGroup().setPercentageForJobs(Helper.countPercentage(jobSuccess + jobUnstable, jobSuccess + jobRunning + jobAborted + jobUnstable + jobFailed));
+				data.getReportGroup().setPercentageForJobs(Helper.countPercentage(jobSuccess + jobUnstable + jobRunning, jobSuccess + jobUnstable + jobRunning + jobAborted + jobFailed + jobDisabled));
 			}
 			// Calculate Percentage Per Group based on Tests
 			data.getReportGroup().setPercentageForTests(Helper.countPercentageD(resultsPerGroup.getPass(),

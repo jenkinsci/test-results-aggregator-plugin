@@ -211,9 +211,10 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges, ignoreDisabledJobs);
 		collector.closeJenkinsConnection();
 		// Analyze Results
-		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious(), getIgnoreRunningJobs());
+		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious(), getIgnoreRunningJobs(), getIgnoreDisabledJobs(), getIgnoreNotFoundJobs(),
+				getIgnoreAbortedJobs());
 		// Reporter for HTML and mail
-		Reporter reporter = new Reporter(logger, workspace, run.getRootDir(), globalConfigDTO.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs, configChanges);
+		Reporter reporter = new Reporter(logger, workspace, run.getRootDir(), globalConfigDTO.getMailNotificationFrom(), getIgnoreDisabledJobs(), getIgnoreNotFoundJobs(), getIgnoreAbortedJobs(), configChanges);
 		reporter.publishResuts(aggregated, properties, localizedColumns, run.getRootDir());
 		// Add Build Action
 		run.addAction(new TestResultsAggregatorTestResultBuildAction(aggregated));
@@ -249,9 +250,11 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		collector.collectResults(validatedData, compareWithPrevious(), getIgnoreRunningJobs(), configChanges, ignoreDisabledJobs);
 		collector.closeJenkinsConnection();
 		// Analyze Results
-		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious(), getIgnoreRunningJobs());
+		Aggregated aggregated = new Analyzer(logger).analyze(aggregatedSavedData, validatedData, properties, compareWithPrevious(), getIgnoreRunningJobs(), getIgnoreDisabledJobs(), getIgnoreNotFoundJobs(),
+				getIgnoreAbortedJobs());
 		// Reporter for HTML and mail
-		Reporter reporter = new Reporter(logger, build.getProject().getSomeWorkspace(), build.getRootDir(), globalConfigDTO.getMailNotificationFrom(), ignoreDisabledJobs, ignoreNotFoundJobs, ignoreAbortedJobs,
+		Reporter reporter = new Reporter(logger, build.getProject().getSomeWorkspace(), build.getRootDir(), globalConfigDTO.getMailNotificationFrom(), getIgnoreDisabledJobs(), getIgnoreNotFoundJobs(),
+				getIgnoreAbortedJobs(),
 				configChanges);
 		reporter.publishResuts(aggregated, properties, localizedColumns, build.getRootDir());
 		// Add Build Action
