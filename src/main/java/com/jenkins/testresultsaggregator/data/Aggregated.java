@@ -200,9 +200,9 @@ public class Aggregated extends BaseResult {
 	
 	public String calculatePercentageOfJobs(boolean withColor, int fontSize, String status) {
 		if (withColor) {
-			return Helper.colorizePercentage(Helper.countPercentageD(successJobs + fixedJobs, getTotalJobs()), fontSize, status);
+			return Helper.colorizePercentage(Helper.countPercentageD(successJobs + fixedJobs + runningJobs + unstableJobs + keepUnstableJobs, getTotalJobs()), fontSize, status);
 		}
-		return Helper.countPercentageD(successJobs + fixedJobs, getTotalJobs()).toString();
+		return Helper.countPercentageD(successJobs + fixedJobs + runningJobs + unstableJobs + keepUnstableJobs, getTotalJobs()).toString();
 	}
 	
 	public String calculateTotalDuration() {

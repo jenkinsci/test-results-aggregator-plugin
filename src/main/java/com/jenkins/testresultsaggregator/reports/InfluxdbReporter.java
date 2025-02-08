@@ -38,13 +38,10 @@ public class InfluxdbReporter {
 			//
 			for (Data data : aggregated.getData()) {
 				for (Job job : data.getJobs()) {
-					// Post Data per Job
+					// Post Job data
 					if (job.getLast() != null) {
 						Instant time = Instant.ofEpochMilli(job.getLast().getTimestamp());
-						/*if (job.getResults() != null && job.getResults().getStatus() != null && !job.getResults().getStatus().name().equalsIgnoreCase(job.getResults().getStatusAdvanced()) || configurationChanges) {
-							time = time.plusMillis(1000);// Add one sec for previously changes into calculated Advanced status in order to update the status in Grafana
-						}*/
-						Point pointJenkinsJob = Point.measurement(job.getJobName() + "#" + job.getLast().getBuildNumber())
+						Point jobData = Point.measurement(job.getJobName() + "#" + job.getLast().getBuildNumber())
 								.time(time, WritePrecision.S)
 								.addTag("Jenkins Job Name", job.getJobName())
 								.addTag("Build", Integer.toString(job.getLast().getBuildNumber()))
@@ -59,21 +56,32 @@ public class InfluxdbReporter {
 								.addTag("Duration", Long.toString(job.getResults().getDuration()))
 								.addTag("Last_Update", timeNow.toString())
 								.addField("Result", job.getResults().getStatusAdvanced());
-						send(pointJenkinsJob, bucket, org, errorPosting);
+						send(jobData, bucket, org, errorPosting);
 					} else {
 						logger.println("Jenkins Job Name" + job.getJobName() + " has no last build data");
 					}
 					Thread.sleep(200);
 				}
+				// Post group data
+				if (!Strings.isNullOrEmpty(data.getGroupName())) {
+					Point groupData = Point.measurement("GroupData")
+							.time(timeNow, WritePrecision.S)
+							.addTag("GroupName", data.getGroupName())
+							.addTag("GroupStatus", data.getReportGroup().getStatus())
+							.addTag("GroupJobPercentage", data.getReportGroup().getPercentageForJobs(false, 1))
+							.addTag("GroupTestPercentage", data.getReportGroup().getPercentageForTests(false, 1))
+							.addField("Result", data.getReportGroup().getStatus());
+					send(groupData, bucket, org, errorPosting);
+				}
 			}
 			/*if (!Strings.isNullOrEmpty(errorPosting.toString())) {
 				logger.println("ERROR " + errorPosting.toString());
 			}*/
-			
 			// Post last update date time
-			
 			Point pointJenkinsJob = Point.measurement("TestResultsAggregator")
 					.time(timeNow, WritePrecision.S)
+					.addTag("AggregatorJobPercentage", aggregated.calculatePercentageOfJobs(false, 1, null))
+					.addTag("AggregatorTestPercentage", aggregated.calculatePercentage().toString())
 					.addField("Last_Update", timeNow.toString());
 			send(pointJenkinsJob, bucket, org, errorPosting);
 			logger.println(LocalMessages.FINISHED.toString() + " " + LocalMessages.INFLUXDB.toString());
