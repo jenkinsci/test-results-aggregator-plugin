@@ -3,6 +3,7 @@ package com.jenkins.testresultsaggregator.reports;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 
 import com.google.common.base.Strings;
@@ -17,6 +18,7 @@ import com.influxdb.exceptions.UnprocessableEntityException;
 import com.jenkins.testresultsaggregator.data.Aggregated;
 import com.jenkins.testresultsaggregator.data.Data;
 import com.jenkins.testresultsaggregator.data.Job;
+import com.jenkins.testresultsaggregator.data.JobStatus;
 import com.jenkins.testresultsaggregator.helper.LocalMessages;
 
 public class InfluxdbReporter {
@@ -56,6 +58,19 @@ public class InfluxdbReporter {
 								.addTag("Duration", Long.toString(job.getResults().getDuration()))
 								.addTag("Last_Update", timeNow.toString())
 								.addField("Result", job.getResults().getStatusAdvanced());
+						if (JobStatus.RUNNING.name().equalsIgnoreCase(job.getResults().getStatusAdvanced())) {
+							Instant now = Instant.now();
+							Instant jobTimeStamp = Instant.ofEpochMilli(job.getLast().getTimestamp());
+							Instant expectedToFinish = jobTimeStamp.plusMillis(job.getLast().getEstimatedDuration());
+							long diffInMillis = ChronoUnit.MILLIS.between(now, expectedToFinish);
+							if (diffInMillis > 0) {
+								jobData.addTag("EstimatedDuration", Long.toString(diffInMillis));
+							} else {
+								jobData.addTag("EstimatedDuration", "0");
+							}
+						} else {
+							jobData.addTag("EstimatedDuration", "0");
+						}
 						send(jobData, bucket, org, errorPosting);
 					} else {
 						logger.println("Jenkins Job Name" + job.getJobName() + " has no last build data");
