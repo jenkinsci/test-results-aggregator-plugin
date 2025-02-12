@@ -59,10 +59,9 @@ public class InfluxdbReporter {
 								.addTag("Last_Update", timeNow.toString())
 								.addField("Result", job.getResults().getStatusAdvanced());
 						if (JobStatus.RUNNING.name().equalsIgnoreCase(job.getResults().getStatusAdvanced())) {
-							Instant now = Instant.now();
 							Instant jobTimeStamp = Instant.ofEpochMilli(job.getLast().getTimestamp());
 							Instant expectedToFinish = jobTimeStamp.plusMillis(job.getLast().getEstimatedDuration());
-							long diffInMillis = ChronoUnit.MILLIS.between(now, expectedToFinish);
+							long diffInMillis = ChronoUnit.MILLIS.between(timeNow, expectedToFinish);
 							if (diffInMillis > 0) {
 								jobData.addTag("EstimatedDuration", Long.toString(diffInMillis));
 							} else {
