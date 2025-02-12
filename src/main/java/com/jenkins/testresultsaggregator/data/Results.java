@@ -647,14 +647,16 @@ public class Results implements Serializable {
 	}
 	
 	public Results addResults(Results resultsDTO) {
-		this.setTotal(this.getTotal() + resultsDTO.getTotal());
-		this.setTotalDif(this.getTotalDif() + resultsDTO.getTotalDif());
-		this.setFail(this.getFail() + resultsDTO.getFail());
-		this.setFailDif(this.getFailDif() + resultsDTO.getFailDif());
-		this.setPass(this.getPass() + resultsDTO.getPass());
-		this.setPassDif(this.getPassDif() + resultsDTO.getPassDif());
-		this.setSkip(this.getSkip() + resultsDTO.getSkip());
-		this.setSkipDif(this.getSkipDif() + resultsDTO.getSkipDif());
+		if (resultsDTO != null) {
+			this.setTotal(this.getTotal() + resultsDTO.getTotal());
+			this.setTotalDif(this.getTotalDif() + resultsDTO.getTotalDif());
+			this.setFail(this.getFail() + resultsDTO.getFail());
+			this.setFailDif(this.getFailDif() + resultsDTO.getFailDif());
+			this.setPass(this.getPass() + resultsDTO.getPass());
+			this.setPassDif(this.getPassDif() + resultsDTO.getPassDif());
+			this.setSkip(this.getSkip() + resultsDTO.getSkip());
+			this.setSkipDif(this.getSkipDif() + resultsDTO.getSkipDif());
+		}
 		return this;
 	}
 	

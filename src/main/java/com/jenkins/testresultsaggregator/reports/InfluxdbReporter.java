@@ -80,26 +80,33 @@ public class InfluxdbReporter {
 			for (Data data : aggregated.getData()) {
 				// Post group data
 				if (!Strings.isNullOrEmpty(data.getGroupName())) {
+					Double jobPercentage = data.getReportGroup().getPercentageForJobs();
+					Double testPercentage = data.getReportGroup().getPercentageForTests();
 					Point groupData = Point.measurement("GroupData")
 							.time(timeNow, WritePrecision.S)
 							.addTag("GroupName", data.getGroupName())
 							.addTag("GroupStatus", data.getReportGroup().getStatus())
-							.addTag("GroupJobPercentage", data.getReportGroup().getPercentageForJobs(false, null))
-							.addTag("GroupTestPercentage", data.getReportGroup().getPercentageForTests(false, null))
 							.addField("Result", data.getReportGroup().getStatus());
+					if (jobPercentage > 0) {
+						groupData.addTag("GroupJobPercentage", jobPercentage.toString());
+					}
+					if (testPercentage > 0) {
+						groupData.addTag("GroupTestPercentage", testPercentage.toString());
+					}
+					if (data.getReportGroup().getJobRunning() > 0) {
+						groupData.addTag("Running", "blue");
+					}
 					send(groupData, bucket, org, errorPosting);
 				}
 			}
-			/*if (!Strings.isNullOrEmpty(errorPosting.toString())) {
-				logger.println("ERROR " + errorPosting.toString());
-			}*/
 			// Post last update date time
 			Point pointJenkinsJob = Point.measurement("TestResultsAggregator")
 					.time(timeNow, WritePrecision.S)
-					.addTag("AggregatorJobPercentage", aggregated.calculatePercentageOfJobs(false, 1, null))
-					.addTag("AggregatorTestPercentage", aggregated.calculatePercentage().toString())
 					.addField("Last_Update", timeNow.toString());
 			send(pointJenkinsJob, bucket, org, errorPosting);
+			/*if (!Strings.isNullOrEmpty(errorPosting.toString())) {
+			logger.println("ERROR " + errorPosting.toString());
+			}*/
 			logger.println(LocalMessages.FINISHED.toString() + " " + LocalMessages.INFLUXDB.toString());
 		}
 	}

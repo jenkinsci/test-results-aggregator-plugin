@@ -111,6 +111,13 @@ public class ReportGroup implements Serializable {
 		return "";
 	}
 	
+	public Double getPercentageForJobs() {
+		if (!Strings.isNullOrEmpty(percentageForJobs) && Helper.resolvePercentage(percentageForJobs) >= 0) {
+			return Helper.resolvePercentage(percentageForJobs);
+		}
+		return -1D;
+	}
+	
 	public void setPercentageForJobs(String percentageForJobs) {
 		this.percentageForJobs = percentageForJobs;
 	}
@@ -124,6 +131,13 @@ public class ReportGroup implements Serializable {
 			}
 		}
 		return "";
+	}
+	
+	public Double getPercentageForTests() {
+		if (!Strings.isNullOrEmpty(percentageForTests) && Helper.resolvePercentage(percentageForTests) >= 0) {
+			return Helper.resolvePercentage(percentageForTests);
+		}
+		return -1D;
 	}
 	
 	public void setPercentageForTests(String percentageForTests) {

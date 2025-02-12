@@ -143,10 +143,7 @@ public class Analyzer {
 						resultsPerGroup.setSkip(resultsPerGroup.getSkip() + job.getResults().getSkip());
 						resultsPerGroup.setFail(resultsPerGroup.getFail() + job.getResults().getFail());
 						resultsPerGroup.setTotal(resultsPerGroup.getTotal() + job.getResults().getTotal());
-						// Calculate Total Tests for Summary Column , exclude RUNNING when ignore running is false
-						if (!job.getIsBuilding() && (!ignoreRunning || !compareWithPrevious)) {
-							totalResults.addResults(job.getResults());
-						}
+						totalResults.addResults(job.getResults());
 						// Has tests
 						if (job.getLast().getResults().getTotal() <= 0) {
 							isOnlyTestIntoGroup = false;
