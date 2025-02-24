@@ -58,7 +58,7 @@ public class InfluxdbReporter {
 								.addTag("Duration", Long.toString(job.getResults().getDuration()))
 								.addTag("Last_Update", timeNow.toString())
 								.addField("Result", job.getResults().getStatusAdvanced());
-						if (JobStatus.RUNNING.name().equalsIgnoreCase(job.getResults().getStatusAdvanced())) {
+						if (JobStatus.RUNNING.name().equalsIgnoreCase(job.getResults().getStatusAdvanced()) || job.getResults().getStatusAdvanced().contains("*")) {
 							Instant jobTimeStamp = Instant.ofEpochMilli(job.getLast().getTimestamp());
 							Instant expectedToFinish = jobTimeStamp.plusMillis(job.getLast().getEstimatedDuration());
 							long diffInMillis = ChronoUnit.MILLIS.between(timeNow, expectedToFinish);
@@ -93,7 +93,7 @@ public class InfluxdbReporter {
 					if (testPercentage > 0) {
 						groupData.addTag("GroupTestPercentage", testPercentage.toString());
 					}
-					if (data.getReportGroup().getJobRunning() > 0) {
+					if (data.getReportGroup().getJobRunning() > 0 || data.getReportGroup().getJobRunningReportPrevious() > 0) {
 						groupData.addTag("Running", "blue");
 					}
 					send(groupData, bucket, org, errorPosting);

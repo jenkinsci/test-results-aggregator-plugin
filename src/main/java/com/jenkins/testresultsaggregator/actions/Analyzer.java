@@ -132,6 +132,10 @@ public class Analyzer {
 								foundIgnored = true;
 							}
 						}
+						
+						if (jobStatus.contains("*")) {
+							data.getReportGroup().setJobRunningReportPrevious(data.getReportGroup().getJobRunningReportPrevious() + 1);
+						}
 					}
 					if (!foundIgnored) {
 						// Total Duration

@@ -18,6 +18,7 @@ public class ReportGroup implements Serializable {
 	private int jobFailed;
 	private int jobUnstable;
 	private int jobRunning;
+	private int jobRunningReportPrevious;
 	private int jobAborted;
 	private int jobDisabled;
 	private Results results;
@@ -29,19 +30,9 @@ public class ReportGroup implements Serializable {
 		this.jobUnstable = 0;
 		this.jobRunning = 0;
 		this.jobAborted = 0;
+		this.jobRunningReportPrevious = 0;
 		this.onlyTests = true;
 		this.setResults(new Results());
-	}
-	
-	public ReportGroup(String status, int jobSuccess, int jobFailed, int jobUnstable, int jobRunning, int jobAborted, Results resultsDTO) {
-		super();
-		this.status = status;
-		this.jobSuccess = jobSuccess;
-		this.jobFailed = jobFailed;
-		this.jobUnstable = jobUnstable;
-		this.jobRunning = jobRunning;
-		this.jobAborted = jobAborted;
-		this.setResults(resultsDTO);
 	}
 	
 	public String getStatus() {
@@ -188,5 +179,13 @@ public class ReportGroup implements Serializable {
 	
 	public void setOnlyTests(boolean onlyTests) {
 		this.onlyTests = onlyTests;
+	}
+	
+	public int getJobRunningReportPrevious() {
+		return jobRunningReportPrevious;
+	}
+	
+	public void setJobRunningReportPrevious(int jobRunningReportPrevious) {
+		this.jobRunningReportPrevious = jobRunningReportPrevious;
 	}
 }
