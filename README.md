@@ -83,6 +83,6 @@ See the [Github releases page](https://github.com/jenkinsci/test-results-aggrega
   
 **Misc**
 
-[Grafana dashboards Samples](docs/README_GrafanaSamples.md)
+[Grafana Integration and Dashboards Samples](docs/README_GrafanaSamples.md)
 
 [Jenkins.io](https://ci.jenkins.io/job/Plugins/job/test-results-aggregator-plugin/)
