@@ -13,7 +13,7 @@ Example 2 : Report and **publish via html publisher plugin**.
                           recipientsList: 'nick@some.com,mairy@some.com',
                           outOfDateResults: '10', 
                           sortresults: 'Job Name',
-                          subject: 'Test Results'
+                          subject: 'Test Results',
                         	 jobs: [
                                 // Group with 2 Jobs
                                 [jobName: 'My CI Job1', jobFriendlyName: 'Job 1', groupName: 'TeamA'],
@@ -28,7 +28,44 @@ Example 2 : Report and **publish via html publisher plugin**.
 		
 	publishHTML(target: [allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: "html", reportFiles: 'index.html', reportName: "Results"])
 	
-				
+Example 3 : Override ** Global Configuration **.
+
+    testResultsAggregator testResultsAggregator ignoreDisabledJobs: true,
+							ignoreNotFoundJobs: true,
+							ignoreRunningJobs: false,
+							compareWithPreviousRun: true,
+							overrideJenkinsBaseURL: 'https://newjenkinsurl.com',
+							overrideAPIAccountUsername: 'myname',
+							overrideAPIAccountPassword: 'mypassword', 
+                        	jobs: [
+                                // Group with 2 Jobs
+                                [jobName: 'My CI Job1', jobFriendlyName: 'Job 1', groupName: 'TeamA'],
+                                [jobName: 'My CI Job2', jobFriendlyName: 'Job 2', groupName: 'TeamA']
+                            ]
+							
+							
+Example 4 : Post to ** Grafana **
+
+    testResultsAggregator testResultsAggregator ignoreDisabledJobs: true,
+							ignoreNotFoundJobs: true,
+							ignoreRunningJobs: false,
+							compareWithPreviousRun: true,
+							influxdbUrl: 'http://infuxdburl:8086',
+							influxdbToken: 'l9IfvjWabjBBzaVjzEOBhupcLMVx05pl1LKXoMKjUNhwsmiL-CNPw16yNyv9Om2TRQfsy4IUeyfjlI3ncTc9sA==',
+							influxdbBucket: 'TestResultsAggregatorBucket',
+							influxdbOrg: 'MyOrg',
+                        	 jobs: [
+                                // Group with 2 Jobs
+                                [jobName: 'My CI Job1', jobFriendlyName: 'Job 1', groupName: 'TeamA'],
+                                [jobName: 'My CI Job2', jobFriendlyName: 'Job 2', groupName: 'TeamA'],
+                                // jobFriendlyName is optional
+                                [jobName: 'My CI Job3', groupName: 'TeamB'],
+                                [jobName: 'My CI Job4', groupName: 'TeamB'],
+                                // No Groups, groupName is optional
+                                [jobName: 'My CI Job6'],
+                                [jobName: 'My CI Job7']
+                            ]
+														
 ### Parameters & values :
  
 | Argument | Description | 

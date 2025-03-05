@@ -9,12 +9,12 @@
 	</parent>
 	<artifactId>test-results-aggregator</artifactId>
 	<packaging>hpi</packaging>
-	<version>2.5-SNAPSHOT</version>
+	<version>3.0-SNAPSHOT</version>
 	<name>Test Results Aggregator Plugin</name>
 	<description>Aggregate Test and Job Results in a single HTML/email report.</description>
 	<url>https://github.com/jenkinsci/test-results-aggregator-plugin</url>
 	<properties>
-		<jenkins.version>2.400</jenkins.version>
+		<jenkins.version>2.426.3</jenkins.version>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 	</properties>

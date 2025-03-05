@@ -7,6 +7,7 @@ It's a Jenkins plugin that collects jobs and test results and reports them in :
 * html,
 * email, 
 * graphs
+* [grafana](https://grafana.com)
 
 Test Results Aggregator can collect test results for : 
 
@@ -30,6 +31,7 @@ and code coverage results for :
 | --- | ----------- |
 | <img src="docs/screenshots/htmlView2.png" alt="Email report" style="float: center; margin-right: 10px; width: 400" /> | <img src="docs/screenshots/MainView.png" alt="Job results history" style="float: center; margin-right: 10px; width: 400" /> |
 | <img src="docs/screenshots/Untitled1.png" alt="Job results history main view" style="float: center; margin-right: 10px; width: 400" /> | <img src="docs/screenshots/Untitled2.png" alt="Job results per build" style="float: center; margin-right: 10px; width: 400" /> |
+| <img src="docs/screenshots/Grafana1.png" alt="GrafanaMain" style="float: center; margin-right: 10px; width: 400" /> | <img src="docs/screenshots/Grafana2.png" alt="Grafana Jobs" style="float: center; margin-right: 10px; width: 400" /> |
 
 
 **Important** 
@@ -76,8 +78,11 @@ See the [Github releases page](https://github.com/jenkinsci/test-results-aggrega
 * 1.2.x Requires Jenkins >= 2.277
 * 2.x Integration with jenkins client library
 * 2.1.x Java 11
+* 3.x Supports Grafana Integration
 
   
 **Misc**
 
-https://ci.jenkins.io/job/Plugins/job/test-results-aggregator-plugin/
+[Grafana dashboards Samples](docs/README_GrafanaSamples.md)
+
+[Jenkins.io](https://ci.jenkins.io/job/Plugins/job/test-results-aggregator-plugin/)
