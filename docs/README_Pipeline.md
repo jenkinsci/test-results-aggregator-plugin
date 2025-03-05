@@ -1,13 +1,13 @@
 # Test Results Aggregator Pipeline Syntax
 
-Example 1 : Minimum
+**Example 1** : Minimum
 	
 	stage ("Report"){
 		testResultsAggregator jobs:[[jobName: 'My CI Job1'], [jobName: 'My CI Job2'], [jobName: 'My CI Job3']]
 	}
 	
 
-Example 2 : Report and **publish via html publisher plugin**.
+**Example 2** : Report and **publish via html publisher plugin**.
 
     testResultsAggregator columns: 'Job, Build, Status, Percentage, Total, Pass, Fail',
                           recipientsList: 'nick@some.com,mairy@some.com',
@@ -28,7 +28,7 @@ Example 2 : Report and **publish via html publisher plugin**.
 		
 	publishHTML(target: [allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: "html", reportFiles: 'index.html', reportName: "Results"])
 	
-Example 3 : Override ** Global Configuration **.
+**Example 3** : Override **Global Configuration**.
 
     testResultsAggregator testResultsAggregator ignoreDisabledJobs: true,
 							ignoreNotFoundJobs: true,
@@ -44,7 +44,7 @@ Example 3 : Override ** Global Configuration **.
                             ]
 							
 							
-Example 4 : Post to ** Grafana **
+**Example 4** : Post to influxDB **Grafana Integration**
 
     testResultsAggregator testResultsAggregator ignoreDisabledJobs: true,
 							ignoreNotFoundJobs: true,
@@ -87,3 +87,7 @@ Example 4 : Post to ** Grafana **
 | ignoreDisabledJobs|Ignore from report jobs with status DISABLED. Options true/false |
 | ignoreNotFoundJobs|Ignore from report jobs with status NOT_FOUND. Options true/false |
 | ignoreRunningJobs|Ignore from report jobs with status RUNNING. Options true/false. If false then jobs are reported with status RUNNING. If true then jobs are reported with the previous status and results. Moreover an asterisk at the side of status declares that the job is still running. |
+| influxdbUrl| Grafana Integration and the influxDB url like http://infuxdburl:8086 |
+| influxdbToken| Grafana Integration and the influxDB access token |
+| influxdbBucket| Grafana Integration and the influxDB bucket name |
+| influxdbOrg| Grafana Integration and the influxDB organization name |
