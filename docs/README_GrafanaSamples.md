@@ -1,6 +1,6 @@
 # Test Results Aggregator and Grafana Integration
 
-A sample of Grafana Dashboard for Test Results Aggregator is ["Test Results Aggregator.json"](grafana/Test Results Aggregator.json)
+A sample of Grafana Dashboard for Test Results Aggregator is  [Test Results Aggregator.json](grafana/Test%20Results%20Aggregator.json)
 
 You can import it into your Grafana installation. Requires a InfluxDB data source already configured.
  
