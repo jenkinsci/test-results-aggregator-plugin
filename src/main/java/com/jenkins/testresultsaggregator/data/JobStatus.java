@@ -27,6 +27,9 @@ public enum JobStatus {
 	}
 	
 	public static JobStatus getFromString(String text) {
+		if (text.endsWith("*")) {
+			text = text.replace("*", "");
+		}
 		return JobStatus.valueOf(text);
 	}
 }
