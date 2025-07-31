@@ -241,4 +241,29 @@ public class JobResults implements Serializable {
 		this.percentage = percentage;
 	}
 	
+	public JobResults setResults(Results results) {
+		status = results.getStatus();
+		number = results.getNumber();
+		url = results.getUrl();
+		pass = results.getPass();
+		fail = results.getFail();
+		skip = results.getSkip();
+		total = results.getTotal();
+		ccPackages = results.getCcPackages();
+		ccFiles = results.getCcFiles();
+		ccClasses = results.getCcClasses();
+		ccMethods = results.getCcMethods();
+		ccLines = results.getCcLines();
+		ccConditions = results.getCcConditions();
+		duration = results.getDuration();
+		description = results.getDescription();
+		building = results.isBuilding();
+		sonarUrl = results.getSonarUrl();
+		numberOfChanges = results.getNumberOfChanges();
+		changesUrl = results.getChangesUrl();
+		// timestamp= results.getTimestamp();
+		percentage = results.getPercentage();
+		return this;
+	}
+	
 }
