@@ -6,6 +6,7 @@ import java.io.Serializable;
 import com.google.common.base.Strings;
 import com.jenkins.testresultsaggregator.helper.GetEnumFromString;
 import com.jenkins.testresultsaggregator.helper.Helper;
+import com.offbytwo.jenkins.model.BuildResult;
 
 public class Results implements Serializable {
 	
@@ -220,6 +221,34 @@ public class Results implements Serializable {
 	
 	public JobStatus getStatus() {
 		return status;
+	}
+	
+	public BuildResult getStatusBuildResult() {
+		if (status == null) {
+			return null;
+		} else if (status.equals(JobStatus.ABORTED)) {
+			return BuildResult.ABORTED;
+		} else if (status.equals(JobStatus.DISABLED)) {
+			return BuildResult.NOT_BUILT;
+		} else if (status.equals(JobStatus.FAILURE)) {
+			return BuildResult.FAILURE;
+		} else if (status.equals(JobStatus.FIXED)) {
+			return BuildResult.SUCCESS;
+		} else if (status.equals(JobStatus.NOT_FOUND)) {
+			return BuildResult.UNKNOWN;
+		} else if (status.equals(JobStatus.RUNNING)) {
+			return BuildResult.BUILDING;
+		} else if (status.equals(JobStatus.STILL_FAILING)) {
+			return BuildResult.FAILURE;
+		} else if (status.equals(JobStatus.STILL_UNSTABLE)) {
+			return BuildResult.UNSTABLE;
+		} else if (status.equals(JobStatus.SUCCESS)) {
+			return BuildResult.SUCCESS;
+		} else if (status.equals(JobStatus.UNSTABLE)) {
+			return BuildResult.UNSTABLE;
+		} else {
+			return BuildResult.UNKNOWN;
+		}
 	}
 	
 	public String getStatusColor() {

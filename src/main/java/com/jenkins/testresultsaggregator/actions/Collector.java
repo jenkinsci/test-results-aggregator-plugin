@@ -352,6 +352,7 @@ public class Collector {
 				JobResults results = new JobResults();
 				results.setResults(job.getResults());
 				previous.setResults(results);
+				previous.setResult(job.getResults().getStatusBuildResult());
 				job.setPrevious(previous);
 			} else {
 				getNewPrevious(text, job);
