@@ -466,9 +466,7 @@ public class Helper {
 	}
 	
 	private String calculateAdvancedStatusLastAndPrevious(Job job, boolean ignoreRunningJobs) {
-		if (job.getLast().getNumber() == job.getPrevious().getNumber()) {
-			return JobStatus.RUNNING_REPORT_PREVIOUS.name();
-		} else if (BuildResult.SUCCESS.equals(job.getLast().getResult()) && job.getPrevious() != null && !BuildResult.SUCCESS.equals(job.getPrevious().getResult()) && !job.getLast().isBuilding()) {
+		if (BuildResult.SUCCESS.equals(job.getLast().getResult()) && job.getPrevious() != null && !BuildResult.SUCCESS.equals(job.getPrevious().getResult()) && !job.getLast().isBuilding()) {
 			return JobStatus.FIXED.name();
 		} else if (BuildResult.FAILURE.equals(job.getLast().getResult()) && job.getPrevious() != null && BuildResult.FAILURE.equals(job.getPrevious().getResult()) && !job.getLast().isBuilding()) {
 			return JobStatus.STILL_FAILING.name();
@@ -483,9 +481,7 @@ public class Helper {
 	}
 	
 	private String calculateAdvancedStatusLastAndSavedResults(Job job, boolean ignoreRunningJobs) {
-		if (job.getLast().getNumber() == job.getResults().getNumber()) {
-			return JobStatus.RUNNING_REPORT_PREVIOUS.name();
-		} else if (BuildResult.SUCCESS.equals(job.getLast().getResult()) && job.getResults() != null && !BuildResult.SUCCESS.name().equalsIgnoreCase(job.getResults().getStatus().name()) && !job.getLast().isBuilding()) {
+		if (BuildResult.SUCCESS.equals(job.getLast().getResult()) && job.getResults() != null && !BuildResult.SUCCESS.name().equalsIgnoreCase(job.getResults().getStatus().name()) && !job.getLast().isBuilding()) {
 			return JobStatus.FIXED.name();
 		} else if (BuildResult.FAILURE.equals(job.getLast().getResult()) && job.getResults() != null && BuildResult.FAILURE.name().equalsIgnoreCase(job.getResults().getStatus().name()) && !job.getLast().isBuilding()) {
 			return JobStatus.STILL_FAILING.name();
