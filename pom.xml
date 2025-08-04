@@ -42,7 +42,6 @@
 		<connection>scm:git:https://github.com/jenkinsci/test-results-aggregator-plugin.git</connection>
 		<developerConnection>scm:git:https://github.com/jenkinsci/test-results-aggregator-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/test-results-aggregator-plugin</url>
-	    <tag>test-results-aggregator-2.3</tag>
   </scm>
 	<developers>
 		<developer>
