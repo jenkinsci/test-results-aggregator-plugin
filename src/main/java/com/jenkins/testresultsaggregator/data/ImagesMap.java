@@ -13,6 +13,7 @@ import hudson.model.HealthReport;
 public class ImagesMap {
 	
 	private static Map<String, ImageData> images = new HashMap<>();
+	private static String cachedFolder = null;
 	private static String imageSize = "style=\"width:30px;height:30px;\"";
 	private static String getIconSize = "32x32";
 	
@@ -37,6 +38,9 @@ public class ImagesMap {
 	}
 	
 	public static Map<String, ImageData> getImages() {
+		if (!images.isEmpty() && HTMLReporter.FOLDER.equals(cachedFolder)) {
+			return images;
+		}
 		String path = "";
 		if (!HTMLReporter.FOLDER.isEmpty()) {
 			path = HTMLReporter.FOLDER + File.separator;
@@ -46,21 +50,26 @@ public class ImagesMap {
 		images.put(Images.image2.name(), new ImageData(path + "health-40to59.png", "/icons/health-40to59.png", "health-40to59.png", "cid:image2", "Project health is over 40% and up to 60%", 40));
 		images.put(Images.image3.name(), new ImageData(path + "health-60to79.png", "/icons/health-60to79.png", "health-60to79.png", "cid:image3", "Project health is over 60% and up to 80%", 60));
 		images.put(Images.image4.name(), new ImageData(path + "health-80plus.png", "/icons/health-80plus.png", "health-80plus.png", "cid:image4", "Project health is over 80%", 80));
+		cachedFolder = HTMLReporter.FOLDER;
 		return images;
 	}
 	
 	public static String getImage(int score) {
+		Map<String, ImageData> imgs = getImages();
+		String key;
 		if (score <= 20) {
-			return "<img src=\"" + ImagesMap.getImages().get(Images.image0.name()).getFileName() + "\" alt=\"" + ImagesMap.getImages().get(Images.image0.name()).getAlt() + "\" " + imageSize + ">";
+			key = Images.image0.name();
 		} else if (score <= 40) {
-			return "<img src=\"" + ImagesMap.getImages().get(Images.image1.name()).getFileName() + "\" alt=\"" + ImagesMap.getImages().get(Images.image1.name()).getAlt() + "\" " + imageSize + ">";
+			key = Images.image1.name();
 		} else if (score <= 60) {
-			return "<img src=\"" + ImagesMap.getImages().get(Images.image2.name()).getFileName() + "\" alt=\"" + ImagesMap.getImages().get(Images.image2.name()).getAlt() + "\" " + imageSize + ">";
+			key = Images.image2.name();
 		} else if (score <= 80) {
-			return "<img src=\"" + ImagesMap.getImages().get(Images.image3.name()).getFileName() + "\" alt=\"" + ImagesMap.getImages().get(Images.image3.name()).getAlt() + "\" " + imageSize + ">";
+			key = Images.image3.name();
 		} else {
-			return "<img src=\"" + ImagesMap.getImages().get(Images.image4.name()).getFileName() + "\" alt=\"" + ImagesMap.getImages().get(Images.image4.name()).getAlt() + "\" " + imageSize + ">";
+			key = Images.image4.name();
 		}
+		ImageData img = imgs.get(key);
+		return "<img src=\"" + img.getFileName() + "\" alt=\"" + img.getAlt() + "\" " + imageSize + ">";
 	}
 	
 	public static class ImageData {
