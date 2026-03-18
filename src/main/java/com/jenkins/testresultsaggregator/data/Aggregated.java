@@ -245,8 +245,10 @@ public class Aggregated extends BaseResult {
 		Aggregated aggregatedCopy = new Aggregated();
 		aggregatedCopy.setAbortedJobs(abortedJobs);
 		List<Data> copiedDataList = new ArrayList<>();
-		for (Data tempData : data) {
-			copiedDataList.add(tempData.copy());
+		if (data != null) {
+			for (Data tempData : data) {
+				copiedDataList.add(tempData.copy());
+			}
 		}
 		aggregatedCopy.setData(copiedDataList);
 		// aggregatedCopy.setDescription(description);

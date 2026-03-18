@@ -78,7 +78,7 @@ public class Analyzer {
 						new Helper().calculateNewResults(job, ignoreRunning);
 						calculateReport(job, outOfDateResults, ignoreRunning);
 					}
-					String jobStatus = job.getResults().getStatusAdvanced();
+					String jobStatus = job.getResults() != null ? job.getResults().getStatusAdvanced() : null;
 					if (jobStatus != null) {
 						if (jobStatus.startsWith(JobStatus.SUCCESS.name())) {
 							data.getReportGroup().setJobSuccess(data.getReportGroup().getJobSuccess() + 1);

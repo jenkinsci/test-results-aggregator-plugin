@@ -44,7 +44,12 @@ public class Helper {
 		if (timeStamp == null) {
 			return "";
 		} else {
-			int outOfDate = Integer.parseInt(outOfDateResults) * 3600;
+			int outOfDate;
+			try {
+				outOfDate = Integer.parseInt(outOfDateResults) * 3600;
+			} catch (NumberFormatException e) {
+				return getTimeStamp(timeStamp);
+			}
 			LocalDateTime today = LocalDateTime.now();
 			LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(timeStamp), TimeZone.getDefault().toZoneId());
 			Duration d = Duration.between(date, today);

@@ -86,7 +86,7 @@ public class MailNotification {
 				mimeMessageBuilder.addRecipients(recipient, RecipientType.BCC);
 			}
 			// Add Body before
-			StringBuffer messageBody = new StringBuffer();
+			StringBuilder messageBody = new StringBuilder();
 			if (!Strings.isNullOrEmpty(preBodyText)) {
 				preBodyText = resolveVariables(preBodyText);
 				messageBody.append(preBodyText);
@@ -143,7 +143,7 @@ public class MailNotification {
 					mimeMessageBuilder.addRecipients(recipient, RecipientType.TO);
 				}
 				// Add Body before
-				StringBuffer messageBody = new StringBuffer();
+				StringBuilder messageBody = new StringBuilder();
 				if (!Strings.isNullOrEmpty(preBodyText)) {
 					preBodyText = resolveVariables(preBodyText);
 					messageBody.append(preBodyText);
@@ -204,7 +204,7 @@ public class MailNotification {
 		}
 	}
 	
-	private void useImages(StringBuffer messageBody, Map<String, ImageData> images, MimeMessage message) throws MessagingException, IOException, InterruptedException, URISyntaxException {
+	private void useImages(StringBuilder messageBody, Map<String, ImageData> images, MimeMessage message) throws MessagingException, IOException, InterruptedException, URISyntaxException {
 		MimeBodyPart messageBodyPart = new MimeBodyPart();
 		messageBodyPart.setContent(messageBody.toString(), "text/html");
 		Multipart multipart = new MimeMultipart();
