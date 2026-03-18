@@ -244,9 +244,10 @@ public class MailNotification {
 	}
 	
 	protected File copyStream(String sourceFile, String destinationFile, File directory) throws IOException, InterruptedException {
-		InputStream inputUrl = HTMLReporter.class.getResource(sourceFile).openStream();
-		// Create Destination File
-		Helper.createFile(new FilePath(directory), destinationFile).copyFrom(inputUrl);
+		try (InputStream inputUrl = HTMLReporter.class.getResource(sourceFile).openStream()) {
+			// Create Destination File
+			Helper.createFile(new FilePath(directory), destinationFile).copyFrom(inputUrl);
+		}
 		return new File(directory + destinationFile);
 	}
 	
