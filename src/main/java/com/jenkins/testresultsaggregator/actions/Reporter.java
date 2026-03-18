@@ -150,19 +150,21 @@ public class Reporter {
 		buf.close();
 		String body = sb.toString();
 		// Fix Images
-		Set<String> setImageID = ImagesMap.getImages().keySet();
-		for (String contentId : setImageID) {
-			body = body.replaceAll(ImagesMap.getImages().get(contentId).getFileName(), ImagesMap.getImages().get(contentId).getCid());
+		Map<String, ImageData> imagesMap = ImagesMap.getImages();
+		for (String contentId : imagesMap.keySet()) {
+			ImageData imageData = imagesMap.get(contentId);
+			body = body.replaceAll(imageData.getFileName(), imageData.getCid());
 		}
 		return body;
 	}
 	
 	private Map<String, ImageData> resolveImages(String bodyText) {
 		Map<String, ImageData> images = new HashMap<>();
-		Set<String> setImageID = ImagesMap.getImages().keySet();
-		for (String contentId : setImageID) {
-			if (bodyText.contains(ImagesMap.getImages().get(contentId).getCid())) {
-				images.put(contentId, ImagesMap.getImages().get(contentId));
+		Map<String, ImageData> imagesMap = ImagesMap.getImages();
+		for (String contentId : imagesMap.keySet()) {
+			ImageData imageData = imagesMap.get(contentId);
+			if (bodyText.contains(imageData.getCid())) {
+				images.put(contentId, imageData);
 			}
 		}
 		return images;

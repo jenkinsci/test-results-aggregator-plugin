@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.jelly.JellyContext;
@@ -81,9 +82,10 @@ public class HTMLReporter {
 	}
 	
 	private void copyImages(FilePath directory) throws IOException, InterruptedException {
-		Set<String> setImageID = ImagesMap.getImages().keySet();
-		for (String contentId : setImageID) {
-			copyStream(ImagesMap.getImages().get(contentId).getSourceInPlugin(), ImagesMap.getImages().get(contentId).getFileName(), directory);
+		Map<String, ImagesMap.ImageData> imagesMap = ImagesMap.getImages();
+		for (String contentId : imagesMap.keySet()) {
+			ImagesMap.ImageData imageData = imagesMap.get(contentId);
+			copyStream(imageData.getSourceInPlugin(), imageData.getFileName(), directory);
 		}
 	}
 	
