@@ -6,8 +6,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
@@ -99,16 +101,19 @@ public class TestResultsAggregatorHelper extends Notifier implements SimpleBuild
 	
 	public void previousSavedResults(List<Data> validatedData, Aggregated previousAggregated) {
 		if (previousAggregated != null && previousAggregated.getData() != null) {
+			// Build a lookup map from previous results once — O(n) — instead of searching per job — O(n²)
+			Map<String, Job> previousJobMap = new HashMap<>();
+			for (Data pdata : previousAggregated.getData()) {
+				for (Job pjob : pdata.getJobs()) {
+					previousJobMap.put(pjob.getJobName(), pjob);
+				}
+			}
 			for (Data data : validatedData) {
 				for (Job job : data.getJobs()) {
-					for (Data pdata : previousAggregated.getData()) {
-						for (Job pjob : pdata.getJobs()) {
-							if (job.getJobName().equals(pjob.getJobName())) {
-								// The last saved in aggregator its the report now
-								job.setResults(pjob.getResults());
-								break;
-							}
-						}
+					Job pjob = previousJobMap.get(job.getJobName());
+					if (pjob != null) {
+						// The last saved in aggregator is the report now
+						job.setResults(pjob.getResults());
 					}
 				}
 			}
