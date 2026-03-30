@@ -150,9 +150,8 @@ public class Reporter {
 		buf.close();
 		String body = sb.toString();
 		// Fix Images
-		Map<String, ImageData> imagesMap = ImagesMap.getImages();
-		for (String contentId : imagesMap.keySet()) {
-			ImageData imageData = imagesMap.get(contentId);
+		for (Map.Entry<String, ImageData> entry : ImagesMap.getImages().entrySet()) {
+			ImageData imageData = entry.getValue();
 			body = body.replaceAll(imageData.getFileName(), imageData.getCid());
 		}
 		return body;
@@ -160,11 +159,10 @@ public class Reporter {
 	
 	private Map<String, ImageData> resolveImages(String bodyText) {
 		Map<String, ImageData> images = new HashMap<>();
-		Map<String, ImageData> imagesMap = ImagesMap.getImages();
-		for (String contentId : imagesMap.keySet()) {
-			ImageData imageData = imagesMap.get(contentId);
+		for (Map.Entry<String, ImageData> entry : ImagesMap.getImages().entrySet()) {
+			ImageData imageData = entry.getValue();
 			if (bodyText.contains(imageData.getCid())) {
-				images.put(contentId, imageData);
+				images.put(entry.getKey(), imageData);
 			}
 		}
 		return images;

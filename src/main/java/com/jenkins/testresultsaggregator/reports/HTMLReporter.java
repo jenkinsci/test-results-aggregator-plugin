@@ -82,9 +82,8 @@ public class HTMLReporter {
 	}
 	
 	private void copyImages(FilePath directory) throws IOException, InterruptedException {
-		Map<String, ImagesMap.ImageData> imagesMap = ImagesMap.getImages();
-		for (String contentId : imagesMap.keySet()) {
-			ImagesMap.ImageData imageData = imagesMap.get(contentId);
+		for (Map.Entry<String, ImagesMap.ImageData> entry : ImagesMap.getImages().entrySet()) {
+			ImagesMap.ImageData imageData = entry.getValue();
 			copyStream(imageData.getSourceInPlugin(), imageData.getFileName(), directory);
 		}
 	}
