@@ -522,27 +522,22 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		this.columns = columns;
 	}
 	
-	@DataBoundSetter
 	public void setCompareWithPreviousRun(Boolean compareWithPreviousRun) {
 		this.compareWithPreviousRun = compareWithPreviousRun;
 	}
-	
-	@DataBoundSetter
+
 	public void setIgnoreNotFoundJobs(Boolean ignoreNotFoundJobs) {
 		this.ignoreNotFoundJobs = ignoreNotFoundJobs;
 	}
-	
-	@DataBoundSetter
+
 	public void setIgnoreDisabledJobs(Boolean ignoreDisabledJobs) {
 		this.ignoreDisabledJobs = ignoreDisabledJobs;
 	}
-	
-	@DataBoundSetter
+
 	public void setIgnoreAbortedJobs(Boolean ignoreAbortedJobs) {
 		this.ignoreAbortedJobs = ignoreAbortedJobs;
 	}
-	
-	@DataBoundSetter
+
 	public void setIgnoreRunningJobs(Boolean ignoreRunningJobs) {
 		this.ignoreRunningJobs = ignoreRunningJobs;
 	}
@@ -618,32 +613,48 @@ public class TestResultsAggregator extends TestResultsAggregatorHelper implement
 		return ignoreDisabledJobs;
 	}
 	
-	public boolean getIgnoreNotFoundJobs() {
+	public boolean ignoreNotFoundJobs() {
 		if (ignoreNotFoundJobs == null) {
 			ignoreNotFoundJobs = false;
 		}
 		return ignoreNotFoundJobs.booleanValue();
 	}
-	
-	public boolean getIgnoreDisabledJobs() {
+
+	public boolean getIgnoreNotFoundJobs() {
+		return ignoreNotFoundJobs();
+	}
+
+	public boolean ignoreDisabledJobs() {
 		if (ignoreDisabledJobs == null) {
 			ignoreDisabledJobs = false;
 		}
 		return ignoreDisabledJobs.booleanValue();
 	}
-	
-	public boolean getIgnoreAbortedJobs() {
+
+	public boolean getIgnoreDisabledJobs() {
+		return ignoreDisabledJobs();
+	}
+
+	public boolean ignoreAbortedJobs() {
 		if (ignoreAbortedJobs == null) {
 			ignoreAbortedJobs = false;
 		}
 		return ignoreAbortedJobs.booleanValue();
 	}
-	
-	public boolean getIgnoreRunningJobs() {
+
+	public boolean getIgnoreAbortedJobs() {
+		return ignoreAbortedJobs();
+	}
+
+	public boolean ignoreRunningJobs() {
 		if (ignoreRunningJobs == null) {
 			ignoreRunningJobs = false;
 		}
 		return ignoreRunningJobs.booleanValue();
+	}
+
+	public boolean getIgnoreRunningJobs() {
+		return ignoreRunningJobs();
 	}
 	
 	public List<DataPipeline> getJobs() {
